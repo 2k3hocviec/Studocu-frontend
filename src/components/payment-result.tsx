@@ -26,7 +26,7 @@ export function PaymentResult({ success }: PaymentResultProps) {
             : "Giao dịch chưa hoàn tất. Vui lòng kiểm tra lại hoặc thử một phương thức khác."}
         </p>
         <div className="mt-9 flex w-full flex-col gap-3 sm:flex-row">
-          <Link href={success ? "/profile" : "/pricing"} className="flex-1 rounded-xl bg-emerald-700 px-5 py-3 font-semibold text-white">
+          <Link href={success ? "/profile" : "/user/upgrade"} className="flex-1 rounded-xl bg-emerald-700 px-5 py-3 font-semibold text-white">
             {success ? "Xem hồ sơ" : "Thử lại"}
           </Link>
           <Link href="/" className="flex-1 rounded-xl border border-slate-200 px-5 py-3 font-semibold text-slate-700 dark:border-white/10 dark:text-white">

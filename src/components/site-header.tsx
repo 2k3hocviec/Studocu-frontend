@@ -8,9 +8,6 @@ export function SiteHeader() {
           HọcLiệu
         </Link>
         <div className="flex items-center gap-4">
-          <Link href="/pricing" className="hidden text-sm font-medium text-slate-600 hover:text-emerald-700 sm:block dark:text-slate-300">
-            Bảng giá
-          </Link>
           <Link
             href="/login"
             className="rounded-full bg-emerald-700 px-5 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800"
