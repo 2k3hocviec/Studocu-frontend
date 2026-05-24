@@ -39,6 +39,7 @@ type PageData<T> = {
 
 type Payment = {
   id: number;
+  paymentUrl: string;
 };
 
 function formatMoney(value: number) {
@@ -75,7 +76,6 @@ export function UpgradePlans() {
   const [isLoading, setIsLoading] = useState(true);
   const [processingId, setProcessingId] = useState<number | null>(null);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
 
   const loadMembership = useCallback(async (accessToken: string) => {
     const [account, planPage, activeSubscription] = await Promise.all([
@@ -111,19 +111,18 @@ export function UpgradePlans() {
 
     setProcessingId(plan.id);
     setError("");
-    setNotice("");
 
     try {
       const payment = await request<Payment>("/payments", accessToken, {
         method: "POST",
-        body: JSON.stringify({ planId: plan.id, method: "MOCK" }),
+        body: JSON.stringify({ planId: plan.id, method: "VNPAY" }),
       });
-      await request(`/payments/mock-confirm/${payment.id}`, accessToken, { method: "POST" });
-      await loadMembership(accessToken);
-      setNotice(`Đăng ký gói ${plan.name} thành công cho tài khoản ${user?.email ?? ""}.`);
+      if (!payment.paymentUrl) {
+        throw new Error("Không nhận được đường dẫn thanh toán VNPAY.");
+      }
+      window.location.assign(payment.paymentUrl);
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "Không thể đăng ký gói khóa học.");
-    } finally {
+      setError(requestError instanceof Error ? requestError.message : "Không thể tạo thanh toán VNPAY.");
       setProcessingId(null);
     }
   }
@@ -151,7 +150,6 @@ export function UpgradePlans() {
         )}
 
         {error && <p className="mt-7 rounded-2xl bg-rose-50 px-5 py-4 text-sm text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">{error}</p>}
-        {notice && <p className="mt-7 rounded-2xl bg-emerald-50 px-5 py-4 text-sm text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">{notice}</p>}
         {isLoading && <p className="mt-10 text-sm text-slate-500">Đang tải các gói khóa học...</p>}
 
         {!isLoading && (
@@ -171,7 +169,7 @@ export function UpgradePlans() {
                   onClick={() => void enroll(plan)}
                   className="mt-7 h-12 w-full rounded-xl bg-emerald-700 font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-emerald-500"
                 >
-                  {processingId === plan.id ? "Đang đăng ký..." : "Đăng ký gói"}
+                  {processingId === plan.id ? "Đang chuyển đến VNPAY..." : "Thanh toán qua VNPAY"}
                 </button>
               </article>
             ))}

@@ -30,6 +30,7 @@ export default function RootLayout({
       >
         {children}
       </body>
+      <img src="https://www.google.com/imgres?q=%E1%BA%A3nh&imgurl=https%3A%2F%2Fmaunailxinh.com%2Fwp-content%2Fuploads%2F2025%2F05%2Fhinh-anh-hello-kitty-de-thuong.jpg&imgrefurl=https%3A%2F%2Fmaunailxinh.com%2Fhinh-anh-hello-kitty-cute%2F&docid=hxhLCtOH-N7mSM&tbnid=_Cdg7c-fLJF-xM&vet=12ahUKEwiuvb-1pNKUAxWYR2wGHdumFPwQnPAOegQIGxAB..i&w=800&h=746&hcb=2&ved=2ahUKEwiuvb-1pNKUAxWYR2wGHdumFPwQnPAOegQIGxAB" alt="" />
     </html>
   );
 }
