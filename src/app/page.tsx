@@ -1,18 +1,10 @@
 import Link from "next/link";
+import { SiteHeader } from "@/components/site-header";
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <header className="border-b border-slate-200 bg-white dark:border-white/10 dark:bg-slate-950">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <Link href="/" className="text-xl font-bold text-emerald-700 dark:text-emerald-400">
-            HọcLiệu
-          </Link>
-          <button className="rounded-full bg-emerald-700 px-5 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800">
-            Đăng nhập
-          </button>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="mx-auto flex max-w-6xl flex-col items-center px-6 py-20 text-center sm:py-28">
         <span className="rounded-full bg-emerald-100 px-4 py-2 text-sm font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
@@ -25,6 +17,12 @@ export default function HomePage() {
           Lưu trữ bài giảng, đề thi và ghi chú học tập của bạn trong một không
           gian đơn giản, thuận tiện và dễ sử dụng.
         </p>
+        <Link
+          href="/register"
+          className="mt-10 rounded-full bg-emerald-700 px-7 py-3.5 font-semibold text-white transition hover:bg-emerald-800"
+        >
+          Bắt đầu ngay
+        </Link>
       </main>
     </div>
   );
