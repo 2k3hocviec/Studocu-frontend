@@ -23,10 +23,20 @@ export function RegisterForm() {
 
     const formData = new FormData(event.currentTarget);
     const email = String(formData.get("email") ?? "").trim().toLowerCase();
+    const password = String(formData.get("password") ?? "");
+    const confirmPassword = String(formData.get("confirmPassword") ?? "");
+
+    if (password !== confirmPassword) {
+      setError("Mật khẩu xác nhận không khớp.");
+      setIsSubmitting(false);
+      return;
+    }
+
     const payload = {
       fullName: String(formData.get("fullName") ?? "").trim(),
       email,
-      password: String(formData.get("password") ?? ""),
+      password,
+      confirmPassword,
     };
 
     try {
@@ -58,6 +68,7 @@ export function RegisterForm() {
       <Field label="Họ và tên" name="fullName" placeholder="Nguyễn Văn An" autoComplete="name" minLength={2} />
       <Field label="Email" name="email" type="email" placeholder="ban@example.com" autoComplete="email" />
       <Field label="Mật khẩu" name="password" type="password" placeholder="Tối thiểu 8 ký tự" autoComplete="new-password" minLength={8} />
+      <Field label="Xác nhận mật khẩu" name="confirmPassword" type="password" placeholder="Nhập lại mật khẩu" autoComplete="new-password" minLength={8} />
       {error && (
         <p className="rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
           {error}

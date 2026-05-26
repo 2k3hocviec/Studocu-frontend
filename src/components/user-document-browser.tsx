@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { SiteHeader } from "@/components/site-header";
 
 const allValue = "ALL";
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
@@ -21,6 +21,10 @@ type DocumentItem = {
   subject: Subject;
   uploader: { id: number; fullName: string };
 };
+type DocumentDetail = DocumentItem & {
+  previews: Array<{ id: number; pageNumber: number; imageUrl: string; isBlurred: boolean }>;
+  documentFile?: { fileUrl: string; previewUrl: string | null };
+};
 type PagedResponse<T> = {
   success: boolean;
   message?: string;
@@ -29,6 +33,11 @@ type PagedResponse<T> = {
     pagination: { total: number };
   };
 };
+type ItemResponse<T> = {
+  success: boolean;
+  message?: string;
+  data?: T;
+};
 
 const documentTypeLabels: Record<DocumentType, string> = {
   LECTURE: "Bài giảng",
@@ -36,6 +45,14 @@ const documentTypeLabels: Record<DocumentType, string> = {
   NOTE: "Ghi chú",
   ASSIGNMENT: "Bài tập",
   OTHER: "Khác",
+};
+
+const documentTypeStyles: Record<DocumentType, string> = {
+  LECTURE: "bg-amber-100 text-amber-800",
+  EXAM: "bg-blue-100 text-blue-700",
+  NOTE: "bg-slate-100 text-slate-700",
+  ASSIGNMENT: "bg-emerald-100 text-emerald-800",
+  OTHER: "bg-slate-100 text-slate-700",
 };
 
 export function UserDocumentBrowser() {
@@ -49,6 +66,9 @@ export function UserDocumentBrowser() {
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedDocument, setSelectedDocument] = useState<DocumentDetail | null>(null);
+  const [readingId, setReadingId] = useState<number | null>(null);
+  const [readerError, setReaderError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -134,43 +154,58 @@ export function UserDocumentBrowser() {
     setType(allValue);
   }
 
-  return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <header className="border-b border-slate-200 bg-white dark:border-white/10 dark:bg-slate-950">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-5 sm:px-8">
-          <Link href="/user" className="text-xl font-bold text-emerald-700 dark:text-emerald-400">
-            HọcLiệu
-          </Link>
-          <div className="flex items-center gap-3 text-sm">
-            <Link href="/user/upgrade" className="hidden font-medium text-slate-600 sm:block dark:text-slate-300">
-              Nâng cấp
-            </Link>
-            <Link href="/profile" className="rounded-full border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-white">
-              Hồ sơ
-            </Link>
-          </div>
-        </div>
-      </header>
+  async function openDocument(documentId: number) {
+    setReadingId(documentId);
+    setReaderError("");
 
-      <main className="mx-auto max-w-7xl px-5 py-9 sm:px-8">
-        <section className="rounded-3xl bg-emerald-950 px-6 py-8 text-white sm:px-9">
-          <p className="text-sm font-semibold text-emerald-200">Thư viện tài liệu</p>
-          <h1 className="mt-3 text-3xl font-bold sm:text-4xl">Tìm tài liệu học tập của bạn</h1>
-          <p className="mt-3 max-w-xl text-emerald-100">
+    const accessToken = localStorage.getItem("accessToken");
+    const headers: HeadersInit = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+
+    try {
+      const response = await fetch(`${apiUrl}/documents/${documentId}`, { headers });
+      const result = (await response.json()) as ItemResponse<DocumentDetail>;
+
+      if (!response.ok || !result.success || !result.data) {
+        throw new Error(result.message ?? "Không thể mở tài liệu.");
+      }
+
+      setSelectedDocument(result.data);
+    } catch (requestError) {
+      setReaderError(requestError instanceof Error ? requestError.message : "Không thể mở tài liệu.");
+    } finally {
+      setReadingId(null);
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-[#f5f8f7] text-slate-900">
+      <SiteHeader authenticated />
+
+      <main className="profile-pattern mx-auto min-h-[calc(100vh-4rem)] max-w-6xl px-6 py-8 sm:py-10">
+        <section className="rounded-2xl bg-gradient-to-r from-[#56b09c] to-[#70c4b4] px-7 py-8 text-[#12382f] shadow-sm sm:px-9">
+          <p className="text-sm font-medium text-emerald-950/70">Thư viện tài liệu</p>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Tìm tài liệu học tập của bạn</h1>
+          <p className="mt-3 max-w-xl text-sm text-emerald-950/75 sm:text-base">
             Tra cứu bài giảng, đề thi và ghi chú từ các trường học.
           </p>
         </section>
 
-        <section className="mt-7 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5 sm:p-7">
+        <section className="mt-7 rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_7px_18px_rgba(15,23,42,0.09)] sm:p-7">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+            <label className="text-sm font-semibold text-slate-800">
               Tên tài liệu
-              <input
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                placeholder="Nhập tên tài liệu..."
-                className="mt-2 h-12 w-full rounded-xl border border-slate-200 bg-transparent px-4 font-normal outline-none focus:border-emerald-600 dark:border-white/10"
-              />
+              <span className="relative mt-2 block">
+                <input
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  placeholder="Nhập tên tài liệu..."
+                  className="h-12 w-full rounded-lg border border-slate-200 bg-white px-4 pr-11 font-normal outline-none transition focus:border-emerald-600"
+                />
+                <svg viewBox="0 0 24 24" className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#096747]" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <circle cx="10.5" cy="10.5" r="6" />
+                  <path d="m15 15 5 5" />
+                </svg>
+              </span>
             </label>
             <FilterSelect label="Môn học" value={subject} onChange={setSubject} options={visibleSubjects} />
             <FilterSelect
@@ -182,12 +217,12 @@ export function UserDocumentBrowser() {
               }}
               options={schools}
             />
-            <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+            <label className="text-sm font-semibold text-slate-800">
               Loại tài liệu
               <select
                 value={type}
                 onChange={(event) => setType(event.target.value as typeof type)}
-                className="mt-2 h-12 w-full rounded-xl border border-slate-200 bg-transparent px-4 font-normal outline-none focus:border-emerald-600 dark:border-white/10"
+                className="mt-2 h-12 w-full rounded-lg border border-slate-200 bg-white px-4 font-normal outline-none transition focus:border-emerald-600"
               >
                 <option value={allValue}>Tất cả loại</option>
                 {Object.entries(documentTypeLabels).map(([value, label]) => (
@@ -197,54 +232,77 @@ export function UserDocumentBrowser() {
             </label>
           </div>
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm text-slate-500 dark:text-slate-300">
-              Tìm thấy <span className="font-bold text-slate-900 dark:text-white">{total}</span> tài liệu
+            <p className="flex items-center gap-2 text-sm text-[#164b3d]">
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7">
+                <rect x="4" y="4" width="6" height="6" />
+                <rect x="14" y="4" width="6" height="6" />
+                <rect x="4" y="14" width="6" height="6" />
+                <rect x="14" y="14" width="6" height="6" />
+              </svg>
+              Tìm thấy <span className="font-bold">{total}</span> tài liệu
             </p>
-            <button onClick={clearFilters} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-emerald-300 hover:text-emerald-700 dark:border-white/10 dark:text-slate-300">
+            <button onClick={clearFilters} className="app-button-primary">
               Xóa bộ lọc
             </button>
           </div>
         </section>
 
+        {readerError && (
+          <p className="mt-6 rounded-xl bg-rose-50 px-5 py-4 text-sm text-rose-700">
+            {readerError}
+          </p>
+        )}
+
         {error && (
-          <p className="mt-7 rounded-2xl bg-rose-50 px-5 py-4 text-sm text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
+          <p className="mt-6 rounded-xl bg-rose-50 px-5 py-4 text-sm text-rose-700">
             {error}
           </p>
         )}
 
         {isLoading && (
-          <p className="mt-7 text-center text-sm text-slate-500 dark:text-slate-300">Đang tải tài liệu...</p>
+          <p className="mt-7 text-center text-sm text-slate-500">Đang tải tài liệu...</p>
         )}
 
         {!isLoading && <section className="mt-7 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {documents.map((document) => (
-            <article key={document.id} className="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-emerald-200 hover:shadow-md dark:border-white/10 dark:bg-white/5">
+            <article key={document.id} className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_8px_rgba(15,23,42,0.04)] transition hover:border-emerald-200 hover:shadow-md">
               <div className="flex items-start justify-between gap-3">
-                <span className="rounded-lg bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                <span className={`rounded-lg px-3 py-1 text-xs font-semibold ${documentTypeStyles[document.documentType]}`}>
                   {documentTypeLabels[document.documentType]}
                 </span>
-                {document.isPremium && <span className="text-xs font-bold text-amber-600">PRO</span>}
+                {document.isPremium && <span className="rounded-full bg-[#947109] px-2.5 py-1 text-[11px] font-bold text-white">PRO</span>}
               </div>
-              <h2 className="mt-4 text-lg font-bold text-slate-950 dark:text-white">{document.title}</h2>
-              <p className="mt-2 min-h-12 text-sm leading-6 text-slate-500 dark:text-slate-300">{document.description ?? "Không có mô tả."}</p>
-              <div className="mt-5 space-y-2 border-t border-slate-100 pt-4 text-sm text-slate-500 dark:border-white/10 dark:text-slate-300">
-                <p><span className="font-semibold text-slate-700 dark:text-slate-100">Môn:</span> {document.subject.name}</p>
-                <p><span className="font-semibold text-slate-700 dark:text-slate-100">Trường:</span> {document.school.name}</p>
+              <h2 className="mt-4 text-lg font-semibold text-slate-950">{document.title}</h2>
+              <p className="mt-2 min-h-12 text-sm leading-6 text-slate-600">{document.description ?? "Không có mô tả."}</p>
+              <div className="mt-5 space-y-2 border-t border-slate-100 pt-4 text-sm text-slate-600">
+                <p><span className="font-semibold text-slate-800">Môn:</span> {document.subject.name}</p>
+                <p><span className="font-semibold text-slate-800">Trường:</span> {document.school.name}</p>
               </div>
-              <div className="mt-5 flex items-center justify-between text-xs text-slate-500">
-                <span>{document.viewCount} lượt xem</span>
-                <span>{document.downloadCount} lượt tải</span>
+              <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4 text-xs text-slate-500">
+                <span>{document.viewCount} lượt xem · {document.downloadCount} lượt tải</span>
+                <button
+                  type="button"
+                  onClick={() => void openDocument(document.id)}
+                  disabled={readingId === document.id}
+                  className="font-semibold text-[#00734b] transition hover:text-[#005638] disabled:opacity-60"
+                >
+                  {readingId === document.id ? "Đang mở..." : "Đọc tài liệu →"}
+                </button>
               </div>
             </article>
           ))}
         </section>}
 
         {!isLoading && !error && documents.length === 0 && (
-          <div className="mt-7 rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center text-slate-500 dark:border-white/15 dark:bg-white/5 dark:text-slate-300">
+          <div className="mt-7 rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center text-slate-500">
             Không có tài liệu phù hợp với bộ lọc hiện tại.
           </div>
         )}
       </main>
+
+      {selectedDocument && (
+        <DocumentReader document={selectedDocument} onClose={() => setSelectedDocument(null)} />
+      )}
     </div>
   );
 }
@@ -258,12 +316,12 @@ type FilterSelectProps = {
 
 function FilterSelect({ label, value, options, onChange }: FilterSelectProps) {
   return (
-    <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+    <label className="text-sm font-semibold text-slate-800">
       {label}
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="mt-2 h-12 w-full rounded-xl border border-slate-200 bg-transparent px-4 font-normal outline-none focus:border-emerald-600 dark:border-white/10"
+        className="mt-2 h-12 w-full rounded-lg border border-slate-200 bg-white px-4 font-normal outline-none transition focus:border-emerald-600"
       >
         <option value={allValue}>Tất cả</option>
         {options.map((option) => (
@@ -271,5 +329,58 @@ function FilterSelect({ label, value, options, onChange }: FilterSelectProps) {
         ))}
       </select>
     </label>
+  );
+}
+
+function DocumentReader({ document, onClose }: { document: DocumentDetail; onClose: () => void }) {
+  const fileUrl = document.documentFile?.previewUrl ?? document.documentFile?.fileUrl;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4" role="dialog" aria-modal="true" aria-label={`Đọc ${document.title}`}>
+      <div className="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
+        <header className="sticky top-0 flex items-start justify-between gap-4 border-b border-slate-100 bg-white px-6 py-5">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">{documentTypeLabels[document.documentType]}</p>
+            <h2 className="mt-1 text-xl font-semibold text-slate-950">{document.title}</h2>
+          </div>
+          <button type="button" onClick={onClose} className="app-button-secondary app-button-compact">
+            Đóng
+          </button>
+        </header>
+        <div className="p-6">
+          {document.previews.length > 0 ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {document.previews.map((preview) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={preview.id}
+                  src={preview.imageUrl}
+                  alt={`Trang ${preview.pageNumber} của ${document.title}`}
+                  className={`w-full rounded-lg border border-slate-200 ${preview.isBlurred ? "blur-sm" : ""}`}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="rounded-xl bg-slate-50 px-5 py-8 text-center text-sm text-slate-500">
+              Tài liệu chưa có hình xem trước. Mở file để đọc nội dung đầy đủ.
+            </p>
+          )}
+          {fileUrl ? (
+            <a
+              href={fileUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="app-button-primary mt-6"
+            >
+              Mở tài liệu đầy đủ
+            </a>
+          ) : (
+            <p className="mt-6 text-sm text-amber-700">
+              Đây là tài liệu Premium. Bạn chỉ có thể đọc bản xem trước nếu chưa nâng cấp quyền truy cập.
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

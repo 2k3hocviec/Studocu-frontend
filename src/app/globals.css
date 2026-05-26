@@ -29,4 +29,22 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+
+  .profile-pattern {
+    background-image:
+      radial-gradient(circle at 92% 9%, rgba(255, 255, 255, 0.8), transparent 23%),
+      radial-gradient(circle at 4% 80%, rgba(255, 255, 255, 0.8), transparent 28%);
+  }
+
+  .app-button-primary {
+    @apply inline-flex h-12 items-center justify-center rounded-lg bg-[#16825f] px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#106c4e] disabled:cursor-not-allowed disabled:opacity-65;
+  }
+
+  .app-button-secondary {
+    @apply inline-flex h-12 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition hover:border-emerald-700 hover:text-emerald-700;
+  }
+
+  .app-button-compact {
+    @apply h-10 rounded-lg px-4;
+  }
 }

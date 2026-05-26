@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { SiteHeader } from "@/components/site-header";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
 
@@ -48,6 +48,10 @@ function formatMoney(value: number) {
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("vi-VN").format(new Date(value));
+}
+
+function getPlanHighlight(index: number, total: number) {
+  return index === Math.min(1, total - 1);
 }
 
 async function request<T>(endpoint: string, accessToken: string, init?: RequestInit) {
@@ -128,53 +132,103 @@ export function UpgradePlans() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <header className="border-b border-slate-200 bg-white dark:border-white/10 dark:bg-slate-950">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <Link href="/user" className="text-xl font-bold text-emerald-700 dark:text-emerald-400">HọcLiệu</Link>
-          <Link href="/user" className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 dark:border-white/10 dark:text-white">
-            Về tài liệu
-          </Link>
-        </div>
-      </header>
+    <div className="min-h-screen bg-[#f5f8f7] text-slate-900">
+      <SiteHeader authenticated />
 
-      <main className="mx-auto max-w-6xl px-6 py-12">
-        <p className="text-sm font-semibold uppercase tracking-widest text-emerald-700 dark:text-emerald-400">Nâng cấp tài khoản</p>
-        <h1 className="mt-4 text-4xl font-bold text-slate-950 dark:text-white">Chọn gói khóa học phù hợp</h1>
-        {user && <p className="mt-4 text-slate-600 dark:text-slate-300">Đăng ký cho <span className="font-semibold">{user.fullName}</span> ({user.email})</p>}
+      <main className="profile-pattern mx-auto min-h-[calc(100vh-4rem)] max-w-6xl px-6 py-8 sm:py-10">
+        <section className="rounded-2xl bg-gradient-to-r from-[#56b09c] to-[#70c4b4] px-7 py-8 text-[#12382f] shadow-sm sm:px-9">
+          <p className="text-sm font-medium text-emerald-950/70">Tài khoản Premium</p>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Chọn gói tài liệu phù hợp</h1>
+          <p className="mt-3 max-w-2xl text-sm text-emerald-950/75 sm:text-base">
+            Mở khóa tài liệu Premium và tăng giới hạn tải xuống để học tập thuận tiện hơn.
+          </p>
+        </section>
 
-        {subscription && (
-          <div className="mt-7 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100">
-            Gói hiện tại: <span className="font-bold">{subscription.plan.name}</span>, có hiệu lực đến {formatDate(subscription.endDate)}.
+        {user && (
+          <div className="mt-7 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-[0_7px_18px_rgba(15,23,42,0.06)]">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Đăng ký cho tài khoản</p>
+              <p className="mt-1 font-semibold text-slate-900">{user.fullName}</p>
+              <p className="text-sm text-slate-500">{user.email}</p>
+            </div>
+            <span className="rounded-full bg-emerald-50 px-4 py-2 text-sm font-medium text-[#00734b]">
+              Thanh toán an toàn qua VNPAY
+            </span>
           </div>
         )}
 
-        {error && <p className="mt-7 rounded-2xl bg-rose-50 px-5 py-4 text-sm text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">{error}</p>}
-        {isLoading && <p className="mt-10 text-sm text-slate-500">Đang tải các gói khóa học...</p>}
+        {subscription && (
+          <div className="mt-6 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-900">
+            <span className="grid h-8 w-8 shrink-0 place-content-center rounded-full bg-emerald-100 text-emerald-700">✓</span>
+            <p>
+              Gói hiện tại: <span className="font-bold">{subscription.plan.name}</span>, có hiệu lực đến {formatDate(subscription.endDate)}.
+            </p>
+          </div>
+        )}
+
+        {error && <p className="mt-6 rounded-xl bg-rose-50 px-5 py-4 text-sm text-rose-700">{error}</p>}
+        {isLoading && <p className="mt-10 text-center text-sm text-slate-500">Đang tải các gói Premium...</p>}
 
         {!isLoading && (
-          <section className="mt-10 grid gap-5 md:grid-cols-3">
-            {plans.map((plan) => (
-              <article key={plan.id} className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm dark:border-white/10 dark:bg-white/5">
-                <h2 className="text-xl font-bold text-slate-950 dark:text-white">{plan.name}</h2>
-                <p className="mt-4 text-4xl font-bold text-emerald-700 dark:text-emerald-400">{formatMoney(plan.price)}đ</p>
-                <p className="mt-2 text-sm text-slate-500">{plan.durationDays} ngày sử dụng</p>
-                <p className="mt-6 border-t border-slate-100 pt-5 text-sm text-slate-600 dark:border-white/10 dark:text-slate-300">
-                  {plan.downloadLimit} lượt tải tài liệu
+          <section className="mt-8 grid gap-5 md:grid-cols-3">
+            {plans.map((plan, index) => {
+              const highlighted = getPlanHighlight(index, plans.length);
+              const current = subscription?.plan.id === plan.id;
+
+              return (
+              <article
+                key={plan.id}
+                className={`relative flex flex-col rounded-2xl border bg-white p-7 shadow-[0_5px_16px_rgba(15,23,42,0.06)] ${
+                  highlighted ? "border-[#16825f] ring-1 ring-[#16825f]" : "border-slate-200"
+                }`}
+              >
+                {highlighted && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#16825f] px-4 py-1 text-xs font-semibold text-white">
+                    Phổ biến nhất
+                  </span>
+                )}
+                <div className="flex items-start justify-between gap-3">
+                  <h2 className="text-xl font-semibold text-slate-950">{plan.name}</h2>
+                  {current && <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">Đang dùng</span>}
+                </div>
+                <p className="mt-5 text-4xl font-bold tracking-tight text-[#00734b]">
+                  {formatMoney(plan.price)}<span className="ml-1 text-xl">đ</span>
                 </p>
-                {plan.description && <p className="mt-3 text-sm text-slate-500">{plan.description}</p>}
+                <p className="mt-2 text-sm text-slate-500">{plan.durationDays} ngày sử dụng</p>
+                <div className="mt-6 space-y-3 border-t border-slate-100 pt-5 text-sm text-slate-600">
+                  <p className="flex items-center gap-2">
+                    <span className="text-[#16825f]">✓</span> {plan.downloadLimit} lượt tải tài liệu
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <span className="text-[#16825f]">✓</span> Xem tài liệu Premium
+                  </p>
+                  {plan.description && (
+                    <p className="flex items-start gap-2">
+                      <span className="text-[#16825f]">✓</span> {plan.description}
+                    </p>
+                  )}
+                </div>
                 <button
                   type="button"
                   disabled={processingId !== null}
                   onClick={() => void enroll(plan)}
-                  className="mt-7 h-12 w-full rounded-xl bg-emerald-700 font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-emerald-500"
+                  className={`mt-8 w-full ${
+                    highlighted
+                      ? "app-button-primary"
+                      : "app-button-secondary"
+                  }`}
                 >
-                  {processingId === plan.id ? "Đang chuyển đến VNPAY..." : "Thanh toán qua VNPAY"}
+                  {processingId === plan.id ? "Đang chuyển đến VNPAY..." : current ? "Gia hạn qua VNPAY" : "Chọn gói này"}
                 </button>
               </article>
-            ))}
+              );
+            })}
           </section>
         )}
+
+        <p className="mt-9 text-center text-sm text-slate-500">
+          Thanh toán qua VNPAY. Gói Premium được kích hoạt sau khi giao dịch thành công.
+        </p>
       </main>
     </div>
   );

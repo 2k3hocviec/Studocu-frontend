@@ -20,7 +20,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <AuthCard
       title="Đăng nhập"
-      description="Đăng nhập để quản lý tài liệu và gói thành viên của bạn."
+      description="Đăng nhập để quản lý tài liệu và gọi thành viên của bạn."
       footnote={<>Chưa có tài khoản? <Link href="/register" className="font-semibold text-emerald-700">Đăng ký</Link></>}
     >
       {notice && (
