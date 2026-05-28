@@ -6,14 +6,15 @@ import { LoginForm } from "@/components/login-form";
 export const metadata: Metadata = { title: "Đăng nhập | HọcLiệu" };
 
 type LoginPageProps = {
-  searchParams: { status?: string };
+  searchParams: Promise<{ status?: string }>;
 };
 
-export default function LoginPage({ searchParams }: LoginPageProps) {
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const params = await searchParams;
   const notice =
-    searchParams.status === "verified"
+    params.status === "verified"
       ? "Xác minh email thành công. Bạn có thể đăng nhập."
-      : searchParams.status === "password-reset"
+      : params.status === "password-reset"
         ? "Đặt lại mật khẩu thành công. Hãy đăng nhập bằng mật khẩu mới."
         : "";
 
