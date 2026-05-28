@@ -42,6 +42,9 @@ export function SiteHeader({ authenticated = false }: SiteHeaderProps) {
 
         {authenticated ? (
           <nav className="hidden items-center gap-3 md:flex">
+            <Link href="/user/upload" className="app-button-primary app-button-compact">
+              + Đăng bài
+            </Link>
             <Link href="/user/upgrade" className="app-button-secondary app-button-compact">
               Nâng cấp
             </Link>
@@ -102,6 +105,7 @@ export function SiteHeader({ authenticated = false }: SiteHeaderProps) {
           <div className="mx-auto flex max-w-6xl flex-col gap-2">
             {authenticated ? (
               <>
+                <Link href="/user/upload" onClick={() => setIsMenuOpen(false)} className="app-button-primary w-full">+ Đăng bài</Link>
                 <Link href="/user" onClick={() => setIsMenuOpen(false)} className="app-button-secondary w-full">Tài liệu</Link>
                 <Link href="/user/upgrade" onClick={() => setIsMenuOpen(false)} className="app-button-secondary w-full">Nâng cấp Premium</Link>
                 <Link href="/profile" onClick={() => setIsMenuOpen(false)} className="app-button-secondary w-full">Hồ sơ cá nhân</Link>
