@@ -6,6 +6,8 @@ import { useParams, useRouter } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { DocumentViewer } from "@/components/document-viewer";
 import { UnlockDialog } from "@/components/unlock-dialog";
+import { ReportDialog } from "@/components/report-dialog";
+import { submitReport } from "@/utils/api";
 
 interface Document {
     id: number;
@@ -60,6 +62,7 @@ export default function DocumentPage() {
     const [userCredit, setUserCredit] = useState(0);
     const [accessToken, setAccessToken] = useState<string | null>(null);
     const [showUnlockDialog, setShowUnlockDialog] = useState(false);
+    const [showReportDialog, setShowReportDialog] = useState(false);
 
     // Fetch document details
     useEffect(() => {
@@ -242,6 +245,21 @@ export default function DocumentPage() {
             : current);
     };
 
+    const handleReport = async (reason: string, description: string) => {
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+            router.push("/login");
+            return;
+        }
+
+        try {
+            await submitReport(Number(documentId), reason, description);
+        } catch (err) {
+            console.error("Report error:", err);
+            throw err;
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950">
@@ -324,6 +342,14 @@ export default function DocumentPage() {
                                 reactionInfo={document.reactionInfo}
                                 onReact={(type) => void handleReaction(type)}
                             />
+                            <button
+                                onClick={() => setShowReportDialog(true)}
+                                title="Báo cáo tài liệu"
+                                className="inline-flex h-9 items-center gap-1 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-2.5 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:border-red-300 hover:text-red-700 dark:hover:border-red-900/50 dark:hover:text-red-400 transition"
+                            >
+                                <span>🚩</span>
+                                <span>Báo cáo</span>
+                            </button>
                         </div>
                     </div>
 
@@ -451,6 +477,15 @@ export default function DocumentPage() {
                 title={document.title}
                 onUnlock={handleUnlock}
                 onClose={() => setShowUnlockDialog(false)}
+            />
+
+            {/* Report Dialog */}
+            <ReportDialog
+                isOpen={showReportDialog}
+                documentId={Number(documentId)}
+                documentTitle={document.title}
+                onReport={handleReport}
+                onClose={() => setShowReportDialog(false)}
             />
         </div>
     );

@@ -104,3 +104,22 @@ export async function apiFetch(urlOrPath: string, options: RequestInit = {}): Pr
 
   return response;
 }
+
+export async function submitReport(
+  documentId: number,
+  reason: string,
+  description: string
+): Promise<{ success: boolean; data: { id: number; status: string } }> {
+  const response = await apiFetch("/reports", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ documentId, reason, description }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Không thể gửi báo cáo");
+  }
+
+  return response.json();
+}
