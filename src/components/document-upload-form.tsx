@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Field, SubmitButton } from "./form-controls";
+import { SubmitButton } from "./form-controls";
+import { getValidAccessToken } from "@/utils/api";
 
 interface DocumentUploadFormProps {
     onSuccess?: () => void;
@@ -121,7 +122,13 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
             const fileType = file.type === "application/pdf" ? "PDF" : file.type.includes("word") ? "DOCX" : "PPTX";
             uploadFormData.append("fileType", fileType);
 
-            const token = localStorage.getItem("accessToken");
+            const token = await getValidAccessToken();
+            if (!token) {
+                setErrorMsg("Phiên đăng nhập hết hạn, vui lòng đăng nhập lại.");
+                setStatus("error");
+                onError?.("Phiên đăng nhập hết hạn");
+                return;
+            }
             const xhr = new XMLHttpRequest();
 
             xhr.upload.addEventListener("progress", (event) => {
@@ -148,7 +155,25 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
                         onSuccess?.();
                         setTimeout(() => setStatus("idle"), 3000);
                     }
+                    return;
                 }
+
+                if (xhr.status === 401) {
+                    setErrorMsg("Phiên đăng nhập hết hạn, vui lòng đăng nhập lại.");
+                    setStatus("error");
+                    onError?.("Phiên đăng nhập hết hạn");
+                    return;
+                }
+
+                let response: { message?: string } = {};
+                try {
+                    response = JSON.parse(xhr.responseText || "{}") as { message?: string };
+                } catch {
+                    response = {};
+                }
+                setErrorMsg(response.message || "Upload thất bại. Vui lòng thử lại.");
+                setStatus("error");
+                onError?.(response.message || "Upload thất bại");
             });
 
             xhr.addEventListener("error", () => {
@@ -158,9 +183,7 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
             });
 
             xhr.open("POST", `${process.env.NEXT_PUBLIC_API_URL}/documents`);
-            if (token) {
-                xhr.setRequestHeader("Authorization", `Bearer ${token}`);
-            }
+            xhr.setRequestHeader("Authorization", `Bearer ${token}`);
             xhr.send(uploadFormData);
         } catch (error) {
             const message = error instanceof Error ? error.message : "Lỗi không xác định";

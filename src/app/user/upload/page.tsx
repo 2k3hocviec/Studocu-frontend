@@ -15,7 +15,7 @@ export default function UploadPage() {
 
     return (
         <div className="flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950">
-            <SiteHeader />
+            <SiteHeader authenticated />
 
             <main className="flex-1 py-8 px-6">
                 <div className="mx-auto max-w-2xl">
