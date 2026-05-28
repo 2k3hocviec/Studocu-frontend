@@ -6,12 +6,13 @@ import { VerifyOtpForm } from "@/components/verify-otp-form";
 export const metadata: Metadata = { title: "Xác minh OTP | HọcLiệu" };
 
 type VerifyPageProps = {
-  searchParams: { flow?: string; email?: string };
+  searchParams: Promise<{ flow?: string; email?: string }>;
 };
 
-export default function VerifyOtpPage({ searchParams }: VerifyPageProps) {
-  const resetPassword = searchParams.flow === "reset";
-  const email = searchParams.email ?? "";
+export default async function VerifyOtpPage({ searchParams }: VerifyPageProps) {
+  const params = await searchParams;
+  const resetPassword = params.flow === "reset";
+  const email = params.email ?? "";
 
   return (
     <AuthCard
