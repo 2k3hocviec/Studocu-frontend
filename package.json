@@ -9,9 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "docx-preview": "^0.3.7",
     "next": "^15.5.18",
+    "pdfjs-dist": "^5.7.284",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "react-pdf": "^10.4.1"
   },
   "devDependencies": {
     "@types/node": "^20",

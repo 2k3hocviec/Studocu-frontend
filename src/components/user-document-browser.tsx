@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 
 const allValue = "ALL";
@@ -20,10 +21,8 @@ type DocumentItem = {
   school: School;
   subject: Subject;
   uploader: { id: number; fullName: string };
-};
-type DocumentDetail = DocumentItem & {
-  previews: Array<{ id: number; pageNumber: number; imageUrl: string; isBlurred: boolean }>;
-  documentFile?: { fileUrl: string; previewUrl: string | null };
+  coverImageUrl: string | null;
+  totalPages: number | null;
 };
 type PagedResponse<T> = {
   success: boolean;
@@ -33,12 +32,6 @@ type PagedResponse<T> = {
     pagination: { total: number };
   };
 };
-type ItemResponse<T> = {
-  success: boolean;
-  message?: string;
-  data?: T;
-};
-
 const documentTypeLabels: Record<DocumentType, string> = {
   LECTURE: "Bài giảng",
   EXAM: "Đề thi",
@@ -66,9 +59,6 @@ export function UserDocumentBrowser() {
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  const [selectedDocument, setSelectedDocument] = useState<DocumentDetail | null>(null);
-  const [readingId, setReadingId] = useState<number | null>(null);
-  const [readerError, setReaderError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -154,29 +144,6 @@ export function UserDocumentBrowser() {
     setType(allValue);
   }
 
-  async function openDocument(documentId: number) {
-    setReadingId(documentId);
-    setReaderError("");
-
-    const accessToken = localStorage.getItem("accessToken");
-    const headers: HeadersInit = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
-
-    try {
-      const response = await fetch(`${apiUrl}/documents/${documentId}`, { headers });
-      const result = (await response.json()) as ItemResponse<DocumentDetail>;
-
-      if (!response.ok || !result.success || !result.data) {
-        throw new Error(result.message ?? "Không thể mở tài liệu.");
-      }
-
-      setSelectedDocument(result.data);
-    } catch (requestError) {
-      setReaderError(requestError instanceof Error ? requestError.message : "Không thể mở tài liệu.");
-    } finally {
-      setReadingId(null);
-    }
-  }
-
   return (
     <div className="min-h-screen bg-[#f5f8f7] text-slate-900">
       <SiteHeader authenticated />
@@ -247,12 +214,6 @@ export function UserDocumentBrowser() {
           </div>
         </section>
 
-        {readerError && (
-          <p className="mt-6 rounded-xl bg-rose-50 px-5 py-4 text-sm text-rose-700">
-            {readerError}
-          </p>
-        )}
-
         {error && (
           <p className="mt-6 rounded-xl bg-rose-50 px-5 py-4 text-sm text-rose-700">
             {error}
@@ -265,31 +226,45 @@ export function UserDocumentBrowser() {
 
         {!isLoading && <section className="mt-7 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {documents.map((document) => (
-            <article key={document.id} className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_8px_rgba(15,23,42,0.04)] transition hover:border-emerald-200 hover:shadow-md">
-              <div className="flex items-start justify-between gap-3">
-                <span className={`rounded-lg px-3 py-1 text-xs font-semibold ${documentTypeStyles[document.documentType]}`}>
-                  {documentTypeLabels[document.documentType]}
-                </span>
-                {document.isPremium && <span className="rounded-full bg-[#947109] px-2.5 py-1 text-[11px] font-bold text-white">PRO</span>}
+            <Link
+              key={document.id}
+              href={`/documents/${document.id}`}
+              className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md"
+            >
+              <div className="relative h-48 overflow-hidden bg-slate-100">
+                {document.coverImageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={document.coverImageUrl}
+                    alt={`Ảnh đại diện ${document.title}`}
+                    className="h-full w-full object-cover object-top transition duration-300 group-hover:scale-[1.02]"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-100 to-emerald-50 text-center text-sm font-semibold text-slate-500">
+                    Chưa có ảnh xem trước
+                  </div>
+                )}
+                <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+                  <span className={`rounded-lg px-3 py-1 text-xs font-semibold shadow-sm ${documentTypeStyles[document.documentType]}`}>
+                    {documentTypeLabels[document.documentType]}
+                  </span>
+                  {document.isPremium && <span className="rounded-full bg-[#947109] px-2.5 py-1 text-[11px] font-bold text-white shadow-sm">PRO</span>}
+                </div>
               </div>
-              <h2 className="mt-4 text-lg font-semibold text-slate-950">{document.title}</h2>
-              <p className="mt-2 min-h-12 text-sm leading-6 text-slate-600">{document.description ?? "Không có mô tả."}</p>
-              <div className="mt-5 space-y-2 border-t border-slate-100 pt-4 text-sm text-slate-600">
-                <p><span className="font-semibold text-slate-800">Môn:</span> {document.subject.name}</p>
-                <p><span className="font-semibold text-slate-800">Trường:</span> {document.school.name}</p>
-              </div>
-              <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4 text-xs text-slate-500">
-                <span>{document.viewCount} lượt xem · {document.downloadCount} lượt tải</span>
-                <button
-                  type="button"
-                  onClick={() => void openDocument(document.id)}
-                  disabled={readingId === document.id}
-                  className="font-semibold text-[#00734b] transition hover:text-[#005638] disabled:opacity-60"
-                >
-                  {readingId === document.id ? "Đang mở..." : "Đọc tài liệu →"}
-                </button>
-              </div>
-            </article>
+              <article className="p-5">
+                <h2 className="line-clamp-2 text-lg font-semibold text-slate-950 group-hover:text-[#00734b]">{document.title}</h2>
+                <p className="mt-2 min-h-12 line-clamp-2 text-sm leading-6 text-slate-600">{document.description ?? "Không có mô tả."}</p>
+                <div className="mt-5 space-y-2 border-t border-slate-100 pt-4 text-sm text-slate-600">
+                  <p><span className="font-semibold text-slate-800">Môn:</span> {document.subject.name}</p>
+                  <p><span className="font-semibold text-slate-800">Trường:</span> {document.school.name}</p>
+                  {document.totalPages && <p><span className="font-semibold text-slate-800">Số trang:</span> {document.totalPages}</p>}
+                </div>
+                <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4 text-xs text-slate-500">
+                  <span>{document.viewCount} lượt xem · {document.downloadCount} lượt tải</span>
+                  <span className="font-semibold text-[#00734b] transition group-hover:text-[#005638]">Đọc tài liệu →</span>
+                </div>
+              </article>
+            </Link>
           ))}
         </section>}
 
@@ -299,10 +274,6 @@ export function UserDocumentBrowser() {
           </div>
         )}
       </main>
-
-      {selectedDocument && (
-        <DocumentReader document={selectedDocument} onClose={() => setSelectedDocument(null)} />
-      )}
     </div>
   );
 }
@@ -332,55 +303,3 @@ function FilterSelect({ label, value, options, onChange }: FilterSelectProps) {
   );
 }
 
-function DocumentReader({ document, onClose }: { document: DocumentDetail; onClose: () => void }) {
-  const fileUrl = document.documentFile?.previewUrl ?? document.documentFile?.fileUrl;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4" role="dialog" aria-modal="true" aria-label={`Đọc ${document.title}`}>
-      <div className="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
-        <header className="sticky top-0 flex items-start justify-between gap-4 border-b border-slate-100 bg-white px-6 py-5">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">{documentTypeLabels[document.documentType]}</p>
-            <h2 className="mt-1 text-xl font-semibold text-slate-950">{document.title}</h2>
-          </div>
-          <button type="button" onClick={onClose} className="app-button-secondary app-button-compact">
-            Đóng
-          </button>
-        </header>
-        <div className="p-6">
-          {document.previews.length > 0 ? (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {document.previews.map((preview) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={preview.id}
-                  src={preview.imageUrl}
-                  alt={`Trang ${preview.pageNumber} của ${document.title}`}
-                  className={`w-full rounded-lg border border-slate-200 ${preview.isBlurred ? "blur-sm" : ""}`}
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="rounded-xl bg-slate-50 px-5 py-8 text-center text-sm text-slate-500">
-              Tài liệu chưa có hình xem trước. Mở file để đọc nội dung đầy đủ.
-            </p>
-          )}
-          {fileUrl ? (
-            <a
-              href={fileUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="app-button-primary mt-6"
-            >
-              Mở tài liệu đầy đủ
-            </a>
-          ) : (
-            <p className="mt-6 text-sm text-amber-700">
-              Đây là tài liệu Premium. Bạn chỉ có thể đọc bản xem trước nếu chưa nâng cấp quyền truy cập.
-            </p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
