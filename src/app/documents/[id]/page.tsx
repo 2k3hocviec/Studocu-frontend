@@ -342,14 +342,15 @@ export default function DocumentPage() {
                                 reactionInfo={document.reactionInfo}
                                 onReact={(type) => void handleReaction(type)}
                             />
-                            <button
-                                onClick={() => setShowReportDialog(true)}
-                                title="Báo cáo tài liệu"
-                                className="inline-flex h-9 items-center gap-1 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-2.5 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:border-red-300 hover:text-red-700 dark:hover:border-red-900/50 dark:hover:text-red-400 transition"
-                            >
-                                <span>🚩</span>
-                                <span>Báo cáo</span>
-                            </button>
+                            {!document.accessInfo.isOwner && (
+                                <button
+                                    onClick={() => setShowReportDialog(true)}
+                                    title="Báo cáo tài liệu"
+                                    className="inline-flex h-9 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 text-sm font-semibold text-slate-600 transition hover:border-red-300 hover:text-red-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-400 dark:hover:border-red-900/50 dark:hover:text-red-400"
+                                >
+                                    <span>Báo cáo</span>
+                                </button>
+                            )}
                         </div>
                     </div>
 

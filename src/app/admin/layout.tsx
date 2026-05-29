@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 
+import { ThemeToggle } from "@/components/theme-toggle";
 import { getValidAccessToken } from "@/utils/api";
 
 type TokenPayload = {
@@ -192,6 +193,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {menuItems.find((item) => item.path === pathname)?.name ?? "Hệ thống quản trị"}
           </h2>
           <div className="flex items-center space-x-4">
+            <ThemeToggle />
             <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
               Chế độ quản trị viên
             </span>

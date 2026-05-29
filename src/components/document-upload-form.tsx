@@ -25,7 +25,6 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
         schoolId: "",
         subjectId: "",
         documentType: "LECTURE",
-        isPremium: false,
     });
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -117,7 +116,7 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
             uploadFormData.append("schoolId", formData.schoolId);
             uploadFormData.append("subjectId", formData.subjectId);
             uploadFormData.append("documentType", formData.documentType);
-            uploadFormData.append("isPremium", formData.isPremium.toString());
+            uploadFormData.append("isPremium", "false");
 
             const fileType = file.type === "application/pdf" ? "PDF" : file.type.includes("word") ? "DOCX" : "PPTX";
             uploadFormData.append("fileType", fileType);
@@ -150,7 +149,6 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
                             schoolId: "",
                             subjectId: "",
                             documentType: "LECTURE",
-                            isPremium: false,
                         });
                         onSuccess?.();
                         setTimeout(() => setStatus("idle"), 3000);
@@ -286,27 +284,17 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
-                        Loại tài liệu
-                        <select value={formData.documentType} onChange={(e) => setFormData({ ...formData, documentType: e.target.value })} className="mt-2 h-12 w-full rounded-lg border border-slate-300 bg-white px-4 font-normal text-slate-900 outline-none transition focus:border-emerald-500 dark:border-white/10 dark:bg-white/5 dark:text-white">
-                            <option value="LECTURE">Bài giảng</option>
-                            <option value="EXAM">Đề thi</option>
-                            <option value="NOTE">Ghi chú</option>
-                            <option value="ASSIGNMENT">Bài tập</option>
-                            <option value="OTHER">Khác</option>
-                        </select>
-                    </label>
-                </div>
-
-                <div>
-                    <label className="flex items-center gap-3 pt-7 text-sm font-semibold text-slate-700 dark:text-slate-200">
-                        <input type="checkbox" checked={formData.isPremium} onChange={(e) => setFormData({ ...formData, isPremium: e.target.checked })} className="h-5 w-5 rounded border-slate-300 bg-white text-emerald-600 accent-emerald-600" />
-                        <span>Tài liệu Premium</span>
-                    </label>
-                    <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Chỉ người có gói Premium mới xem được</p>
-                </div>
+            <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    Loại tài liệu
+                    <select value={formData.documentType} onChange={(e) => setFormData({ ...formData, documentType: e.target.value })} className="mt-2 h-12 w-full rounded-lg border border-slate-300 bg-white px-4 font-normal text-slate-900 outline-none transition focus:border-emerald-500 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                        <option value="LECTURE">Bài giảng</option>
+                        <option value="EXAM">Đề thi</option>
+                        <option value="NOTE">Ghi chú</option>
+                        <option value="ASSIGNMENT">Bài tập</option>
+                        <option value="OTHER">Khác</option>
+                    </select>
+                </label>
             </div>
 
             {/* Error Message */}
@@ -329,7 +317,7 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
             </SubmitButton>
 
             <p className="text-center text-xs text-slate-500 dark:text-slate-400">
-                Sau khi đăng, Admin sẽ duyệt tài liệu trong 24 giờ. Nếu được duyệt bạn sẽ nhận được +5 credit.
+                Sau khi đăng, Admin sẽ duyệt tài liệu trong 24 giờ. Nếu được duyệt bạn sẽ nhận được +2 credit.
             </p>
         </form>
     );

@@ -74,16 +74,16 @@ export default function HomePage() {
           </p>
           <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
             <Link
-              href="/register"
+              href="/login"
               className="rounded-full bg-[#006d45] px-7 py-3.5 text-sm font-semibold text-white transition hover:bg-[#005638]"
             >
               Bắt đầu ngay
             </Link>
             <Link
-              href="/login"
+              href="/pricing"
               className="rounded-full border border-slate-200 bg-white px-7 py-3.5 text-sm font-medium text-slate-700 transition hover:border-emerald-700 hover:text-emerald-700"
             >
-              Xem demo
+              Xem gói Premium
             </Link>
           </div>
 
@@ -104,9 +104,10 @@ export default function HomePage() {
           <p className="mt-2 text-sm text-slate-500">Hàng ngàn tài liệu chất lượng mỗi ngày</p>
           <div className="mt-10 grid gap-5 text-left md:grid-cols-3">
             {documentGroups.map((group) => (
-              <article
+              <Link
                 key={group.title}
-                className="rounded-3xl border border-slate-100 bg-white p-7 shadow-[0_1px_3px_rgba(15,23,42,0.03)]"
+                href="/login"
+                className="group rounded-3xl border border-slate-100 bg-white p-7 shadow-[0_1px_3px_rgba(15,23,42,0.03)] transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-[0_10px_28px_rgba(12,49,36,0.08)]"
               >
                 <span className="inline-flex rounded-xl bg-[#dcece5] p-3 text-[#006d45]">
                   <DocumentIcon name={group.icon} />
@@ -117,9 +118,9 @@ export default function HomePage() {
                   <span className="rounded-full bg-[#e4f2ec] px-3 py-1 text-xs font-medium text-emerald-800">
                     {group.quantity}
                   </span>
-                  <span aria-hidden className="text-xl text-slate-500">→</span>
+                  <span aria-hidden className="text-xl text-slate-500 transition group-hover:translate-x-1 group-hover:text-[#006d45]">→</span>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         </section>
@@ -137,10 +138,10 @@ export default function HomePage() {
                 Đóng góp công sức của bạn cho cộng đồng.
               </p>
               <Link
-                href="/register"
-                className="mt-8 inline-flex w-fit items-center gap-2 rounded-full bg-white px-7 py-3 text-sm font-medium text-[#006d45] transition hover:bg-emerald-50"
+                href="/login"
+                className="mt-8 inline-flex w-fit items-center gap-2 rounded-full bg-[#06130f] px-7 py-3 text-sm font-semibold text-white transition hover:bg-[#0d241c] focus:outline-none focus:ring-2 focus:ring-white/70"
               >
-                <span aria-hidden>♧</span> Đăng tải ngay
+                <span aria-hidden className="text-base leading-none">+</span> Đăng tải ngay
               </Link>
             </div>
             <div className="bg-[#00583f] p-4 sm:p-6">

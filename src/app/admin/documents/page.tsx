@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { apiFetch } from "@/utils/api";
+import { DocumentViewer } from "@/components/document-viewer";
+import { apiFetch, getValidAccessToken } from "@/utils/api";
 
 type DocumentItem = {
   id: number;
@@ -16,6 +17,18 @@ type DocumentItem = {
   uploader: { fullName: string };
   school: { name: string };
   subject: { name: string };
+};
+
+type DocumentDetail = DocumentItem & {
+  description?: string | null;
+  uploader: { id?: number; fullName: string; avatarUrl?: string | null };
+  school: { id?: number; name: string };
+  subject: { id?: number; name: string };
+  documentFile?: {
+    fileType: "PDF" | "DOCX" | "PPTX";
+    totalPages?: number | null;
+  } | null;
+  previews: Array<{ id: number; pageNumber: number; imageUrl: string; isBlurred: boolean }>;
 };
 
 type APIResponse = {
@@ -38,6 +51,9 @@ export default function AdminDocumentsPage() {
   const [loading, setLoading] = useState(true);
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [meta, setMeta] = useState<APIResponse["data"]["meta"] | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<DocumentDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   
   // Các bộ lọc
   const [statusFilter, setStatusFilter] = useState<string>("");
@@ -81,6 +97,26 @@ export default function AdminDocumentsPage() {
     }
   };
 
+  const openDocumentDetail = async (id: number) => {
+    setDetailLoading(true);
+    setSelectedDocument(null);
+    try {
+      const token = await getValidAccessToken();
+      setAccessToken(token);
+      const response = await apiFetch(`${apiUrl}/documents/${id}`);
+      const result = await response.json();
+      if (response.ok && result.success) {
+        setSelectedDocument(result.data as DocumentDetail);
+      } else {
+        showToast(result.message ?? "Không thể tải chi tiết tài liệu.", "error");
+      }
+    } catch (err) {
+      showToast("Lỗi kết nối máy chủ.", "error");
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
   // Debounce search query
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -108,6 +144,7 @@ export default function AdminDocumentsPage() {
       const result = await response.json();
       if (response.ok && result.success) {
         showToast("Đã duyệt tài liệu thành công.");
+        setSelectedDocument(null);
         fetchDocuments();
       } else {
         showToast(result.message ?? "Lỗi duyệt tài liệu.", "error");
@@ -127,6 +164,7 @@ export default function AdminDocumentsPage() {
       const result = await response.json();
       if (response.ok && result.success) {
         showToast("Tài liệu đã được ẩn.");
+        setSelectedDocument(null);
         fetchDocuments();
       } else {
         showToast(result.message ?? "Lỗi ẩn tài liệu.", "error");
@@ -146,6 +184,7 @@ export default function AdminDocumentsPage() {
       const result = await response.json();
       if (response.ok && result.success) {
         showToast("Đã xóa tài liệu thành công.");
+        setSelectedDocument(null);
         fetchDocuments();
       } else {
         showToast(result.message ?? "Lỗi xóa tài liệu.", "error");
@@ -165,6 +204,7 @@ export default function AdminDocumentsPage() {
       const result = await response.json();
       if (response.ok && result.success) {
         showToast("Tài liệu đã được hiển thị lại.");
+        setSelectedDocument(null);
         fetchDocuments();
       } else {
         showToast(result.message ?? "Lỗi bỏ ẩn tài liệu.", "error");
@@ -191,6 +231,7 @@ export default function AdminDocumentsPage() {
       if (response.ok && result.success) {
         showToast("Tài liệu đã bị từ chối.");
         setRejectingDocId(null);
+        setSelectedDocument(null);
         setRejectReason("");
         fetchDocuments();
       } else {
@@ -308,6 +349,12 @@ export default function AdminDocumentsPage() {
                       )}
                     </td>
                     <td className="py-4 px-6 text-right space-x-1">
+                      <button
+                        onClick={() => void openDocumentDetail(doc.id)}
+                        className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/40 transition-colors"
+                      >
+                        Xem
+                      </button>
                       {doc.status === "PENDING" && (
                         <>
                           <button
@@ -398,6 +445,26 @@ export default function AdminDocumentsPage() {
         )}
       </div>
 
+      {(detailLoading || selectedDocument) && (
+        <DocumentDetailModal
+          document={selectedDocument}
+          isLoading={detailLoading}
+          accessToken={accessToken}
+          apiUrl={apiUrl}
+          onClose={() => {
+            setSelectedDocument(null);
+            setDetailLoading(false);
+          }}
+          onApprove={handleApprove}
+          onReject={(id) => {
+            setRejectingDocId(id);
+          }}
+          onHide={handleHide}
+          onUnhide={handleUnhide}
+          onDelete={handleDelete}
+        />
+      )}
+
       {/* Reject Dialog Modal */}
       {rejectingDocId && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
@@ -447,6 +514,202 @@ export default function AdminDocumentsPage() {
           <span className="text-sm font-semibold">{toast.message}</span>
         </div>
       )}
+    </div>
+  );
+}
+
+function DocumentDetailModal({
+  document,
+  isLoading,
+  accessToken,
+  apiUrl,
+  onClose,
+  onApprove,
+  onReject,
+  onHide,
+  onUnhide,
+  onDelete,
+}: {
+  document: DocumentDetail | null;
+  isLoading: boolean;
+  accessToken: string | null;
+  apiUrl: string;
+  onClose: () => void;
+  onApprove: (id: number) => void;
+  onReject: (id: number) => void;
+  onHide: (id: number) => void;
+  onUnhide: (id: number) => void;
+  onDelete: (id: number) => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-30 flex justify-end bg-slate-900/40 backdrop-blur-sm">
+      <aside className="flex h-full w-full max-w-5xl flex-col bg-white shadow-2xl dark:bg-slate-900">
+        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-800">
+          <div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Xem trước tài liệu</h3>
+            <p className="text-xs font-semibold text-slate-400">Kiểm tra nội dung trước khi duyệt hoặc xử lý</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
+          >
+            Đóng
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 py-5">
+          {isLoading || !document ? (
+            <div className="flex h-72 items-center justify-center">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+            </div>
+          ) : (
+            <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+              <section className="space-y-4">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Tài liệu</p>
+                      <h4 className="mt-1 text-base font-bold text-slate-900 dark:text-slate-100">{document.title}</h4>
+                    </div>
+                    <span className="rounded-full bg-slate-200 px-2.5 py-1 text-xs font-bold text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                      {document.status}
+                    </span>
+                  </div>
+                  {document.description && (
+                    <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">{document.description}</p>
+                  )}
+                </div>
+
+                <div className="rounded-xl border border-slate-200 p-4 text-sm dark:border-slate-800">
+                  <dl className="space-y-3">
+                    <DetailRow label="Người đăng" value={document.uploader.fullName} />
+                    <DetailRow label="Trường" value={document.school.name} />
+                    <DetailRow label="Môn học" value={document.subject.name} />
+                    <DetailRow label="Loại" value={document.documentType} />
+                    <DetailRow label="Premium" value={document.isPremium ? "Có" : "Không"} />
+                    <DetailRow label="Lượt xem" value={String(document.viewCount)} />
+                    <DetailRow label="Lượt tải" value={String(document.downloadCount)} />
+                    <DetailRow label="Ngày đăng" value={new Date(document.createdAt).toLocaleDateString("vi-VN")} />
+                    {document.documentFile?.totalPages && <DetailRow label="Số trang" value={String(document.documentFile.totalPages)} />}
+                  </dl>
+                  {document.status === "REJECTED" && document.rejectReason && (
+                    <div className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-950/30 dark:text-rose-300">
+                      <p className="font-bold">Lý do từ chối</p>
+                      <p className="mt-1">{document.rejectReason}</p>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              <section className="min-w-0 rounded-xl border border-slate-200 bg-slate-100 p-4 dark:border-slate-800 dark:bg-slate-950">
+                {document.previews.length > 0 ? (
+                  <div className="max-h-[calc(100vh-220px)] space-y-5 overflow-y-auto pr-1">
+                    {document.previews.map((preview) => (
+                      <img
+                        key={preview.id}
+                        src={preview.imageUrl}
+                        alt={`Trang ${preview.pageNumber} của ${document.title}`}
+                        className={`mx-auto h-auto w-full max-w-[820px] rounded-sm border border-slate-300 bg-white shadow-sm dark:border-slate-700 ${preview.isBlurred ? "blur-sm" : ""}`}
+                      />
+                    ))}
+                  </div>
+                ) : document.documentFile ? (
+                  <DocumentViewer
+                    fileUrl={`${apiUrl}/documents/${document.id}/file`}
+                    fileType={document.documentFile.fileType}
+                    totalPages={document.documentFile.totalPages ?? undefined}
+                    authToken={accessToken}
+                    downloadFileName={document.title}
+                  />
+                ) : (
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-6 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200">
+                    <p className="font-semibold">Tài liệu này chưa có preview hoặc file gốc.</p>
+                    <p className="mt-1 text-sm">Bạn vẫn có thể xử lý trạng thái nếu metadata đã đủ rõ.</p>
+                  </div>
+                )}
+              </section>
+            </div>
+          )}
+        </div>
+
+        {document && (
+          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-slate-200 px-6 py-4 dark:border-slate-800">
+            {document.status === "PENDING" && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => onReject(document.id)}
+                  className="rounded-xl border border-rose-200 px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 dark:border-rose-950 dark:hover:bg-rose-950/20"
+                >
+                  Từ chối
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onApprove(document.id)}
+                  className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700"
+                >
+                  Duyệt tài liệu
+                </button>
+              </>
+            )}
+            {document.status === "APPROVED" && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => onHide(document.id)}
+                  className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
+                >
+                  Ẩn đi
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDelete(document.id)}
+                  className="rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white hover:bg-rose-700"
+                >
+                  Xóa
+                </button>
+              </>
+            )}
+            {document.status === "HIDDEN" && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => onUnhide(document.id)}
+                  className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700"
+                >
+                  Hiện lại
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDelete(document.id)}
+                  className="rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white hover:bg-rose-700"
+                >
+                  Xóa
+                </button>
+              </>
+            )}
+            {document.status === "REJECTED" && (
+              <button
+                type="button"
+                onClick={() => onDelete(document.id)}
+                className="rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white hover:bg-rose-700"
+              >
+                Xóa
+              </button>
+            )}
+          </div>
+        )}
+      </aside>
+    </div>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="text-xs font-bold uppercase tracking-wider text-slate-400">{label}</dt>
+      <dd className="mt-0.5 font-semibold text-slate-800 dark:text-slate-200">{value}</dd>
     </div>
   );
 }

@@ -7,17 +7,59 @@
   --foreground: #10231c;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #071410;
-    --foreground: #e9f3ee;
-  }
+.dark {
+  --background: #071410;
+  --foreground: #e9f3ee;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+.dark body {
+  color: var(--foreground);
+  background: var(--background);
+}
+
+.dark .profile-pattern {
+  background-image:
+    radial-gradient(circle at 92% 9%, rgba(16, 185, 129, 0.08), transparent 23%),
+    radial-gradient(circle at 4% 80%, rgba(20, 184, 166, 0.08), transparent 28%);
+}
+
+.dark .bg-white,
+.dark .bg-slate-50,
+.dark [class*="bg-[#f5f8f7]"],
+.dark [class*="bg-[#f8faf9]"] {
+  background-color: rgb(2 6 23) !important;
+}
+
+.dark [class*="bg-white/30"],
+.dark [class*="bg-white/5"] {
+  background-color: rgb(15 23 42 / 0.68) !important;
+}
+
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-slate-300 {
+  border-color: rgb(255 255 255 / 0.1) !important;
+}
+
+.dark .text-slate-950,
+.dark .text-slate-900,
+.dark .text-slate-800,
+.dark [class*="text-[#121b17]"],
+.dark [class*="text-[#101613]"],
+.dark [class*="text-[#123329]"] {
+  color: rgb(248 250 252) !important;
+}
+
+.dark .text-slate-700,
+.dark .text-slate-600,
+.dark .text-slate-500 {
+  color: rgb(203 213 225) !important;
 }
 
 ::selection {
@@ -41,7 +83,7 @@ body {
   }
 
   .app-button-secondary {
-    @apply inline-flex h-12 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition hover:border-emerald-700 hover:text-emerald-700;
+    @apply inline-flex h-12 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition hover:border-emerald-700 hover:text-emerald-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:border-emerald-500 dark:hover:text-emerald-300;
   }
 
   .app-button-compact {
