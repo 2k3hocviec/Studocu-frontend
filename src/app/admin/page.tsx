@@ -160,17 +160,17 @@ export default function AdminDashboardPage() {
     : "";
 
   return (
-    <div className="space-y-8 animate-fadeIn">
+    <div className="min-w-0 space-y-6 animate-fadeIn xl:space-y-8">
       {/* Date Filter & Options */}
-      <div className="flex flex-col justify-between gap-4 rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-900 md:flex-row md:items-center">
-        <form onSubmit={handleFilterSubmit} className="flex flex-wrap items-end gap-4">
+      <div className="flex flex-col justify-between gap-4 rounded-2xl bg-white p-4 shadow-sm dark:bg-slate-900 sm:p-6 lg:flex-row lg:items-center">
+        <form onSubmit={handleFilterSubmit} className="grid w-full gap-4 sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-end">
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Từ ngày</label>
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold bg-slate-50 dark:border-slate-800 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-slate-800 dark:bg-slate-950"
             />
           </div>
           <div>
@@ -179,12 +179,12 @@ export default function AdminDashboardPage() {
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold bg-slate-50 dark:border-slate-800 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-slate-800 dark:bg-slate-950"
             />
           </div>
           <button
             type="submit"
-            className="rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 transition-colors"
+            className="rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-emerald-700 sm:col-span-2 lg:col-span-1"
           >
             Lọc số liệu
           </button>
@@ -253,7 +253,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Charts Section */}
-      <div className="rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-900 border border-slate-100 dark:border-slate-800/40">
+      <div className="min-w-0 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm dark:border-slate-800/40 dark:bg-slate-900 sm:p-6">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
             <h3 className="text-lg font-bold">Biểu đồ sự tăng trưởng</h3>
@@ -290,7 +290,8 @@ export default function AdminDashboardPage() {
               <span className="text-sm font-semibold text-slate-400">Không có dữ liệu trong khoảng thời gian này</span>
             </div>
           ) : (
-            <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full h-auto">
+            <div className="overflow-x-auto">
+            <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="h-auto min-w-[640px] w-full">
               <defs>
                 <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#10b981" stopOpacity="0.4" />
@@ -389,6 +390,7 @@ export default function AdminDashboardPage() {
                 </>
               )}
             </svg>
+            </div>
           )}
 
           {/* Interactive Tooltip Card overlay */}
@@ -417,7 +419,7 @@ export default function AdminDashboardPage() {
             <p className="text-xs text-slate-400">Xếp hạng 5 tài liệu được tải nhiều nhất</p>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="min-w-[620px] w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 text-xs font-bold uppercase">
                   <th className="py-3 px-2">Tên tài liệu</th>
@@ -449,7 +451,7 @@ export default function AdminDashboardPage() {
             <p className="text-xs text-slate-400">Xếp hạng 5 trường có nhiều tài liệu học tập nhất</p>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="min-w-[520px] w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 text-xs font-bold uppercase">
                   <th className="py-3 px-2">Tên trường học</th>

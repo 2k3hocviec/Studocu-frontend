@@ -160,7 +160,7 @@ export default function AdminReportsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm animate-fadeIn dark:border-slate-800/40 dark:bg-slate-900">
         {loading ? (
           <div className="flex h-60 items-center justify-center">
@@ -172,7 +172,7 @@ export default function AdminReportsPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="min-w-[900px] w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/50 text-xs font-bold uppercase text-slate-400 dark:border-slate-800 dark:bg-slate-900/50">
                   <th className="px-6 py-4">Tài liệu bị báo cáo</th>
@@ -241,7 +241,7 @@ export default function AdminReportsPage() {
         )}
 
         {meta && meta.totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4 dark:border-slate-800">
+          <div className="flex flex-col gap-3 border-t border-slate-100 px-4 py-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <span className="text-xs font-semibold text-slate-400">
               Trang {meta.currentPage} / {meta.totalPages} (Tổng {meta.totalItems} báo cáo)
             </span>
@@ -315,8 +315,8 @@ function ReportDetailModal({
   onReject: (id: number) => void;
 }) {
   return (
-    <div className="fixed inset-0 z-30 flex justify-end bg-slate-900/40 backdrop-blur-sm">
-      <aside className="flex h-full w-full max-w-6xl flex-col bg-white shadow-2xl dark:bg-slate-900">
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/40 p-3 backdrop-blur-sm sm:p-5">
+      <aside className="flex h-[94vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900">
         <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-800">
           <div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Chi tiết báo cáo vi phạm</h3>
@@ -337,7 +337,7 @@ function ReportDetailModal({
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
             </div>
           ) : (
-            <div className="grid gap-5 lg:grid-cols-[360px_1fr]">
+            <div className="grid min-w-0 gap-5 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)]">
               <div className="space-y-5">
                 <section className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950">
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -430,7 +430,7 @@ function ReportDetailModal({
         </div>
 
         {report && (
-          <div className="flex items-center justify-end gap-2 border-t border-slate-200 px-6 py-4 dark:border-slate-800">
+          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-slate-200 px-4 py-4 dark:border-slate-800 sm:px-6">
             {report.status === "PENDING" ? (
               <>
                 <button

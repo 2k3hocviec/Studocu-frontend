@@ -31,6 +31,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [adminEmail, setAdminEmail] = useState("");
   const [adminRole, setAdminRole] = useState("");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     async function checkAuth() {
@@ -58,6 +59,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     localStorage.removeItem("refreshToken");
     router.push("/login");
   };
+
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [pathname]);
 
   if (!isAuthenticated) {
     return (
@@ -128,9 +133,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-200">
+    <div className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-200">
+      {isSidebarOpen ? (
+        <button
+          type="button"
+          aria-label="Đóng menu quản trị"
+          onClick={() => setIsSidebarOpen(false)}
+          className="fixed inset-0 z-30 bg-slate-950/50 backdrop-blur-sm lg:hidden"
+        />
+      ) : null}
       {/* Sidebar */}
-      <aside className="fixed bottom-0 top-0 left-0 z-20 w-64 border-r border-slate-200 bg-white px-4 py-6 dark:border-slate-800 dark:bg-slate-900">
+      <aside className={`fixed inset-y-0 left-0 z-40 flex w-72 max-w-[86vw] flex-col border-r border-slate-200 bg-white px-4 py-5 shadow-2xl transition-transform duration-200 dark:border-slate-800 dark:bg-slate-900 lg:w-60 lg:translate-x-0 lg:shadow-none xl:w-64 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="mb-8 px-2">
           <Link href="/" className="flex items-center space-x-2">
             <span className="text-xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
@@ -147,7 +160,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link
                 key={item.path}
                 href={item.path}
-                className={`flex items-center space-x-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-200 ${
+                className={`flex items-center space-x-3 rounded-xl px-3 py-3 text-sm font-semibold transition-all duration-200 xl:px-4 ${
                   isActive
                     ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400"
                     : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-200"
@@ -161,7 +174,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         {/* Bottom Profile Info & Logout */}
-        <div className="absolute bottom-6 left-4 right-4 border-t border-slate-100 pt-4 dark:border-slate-800">
+        <div className="mt-auto border-t border-slate-100 pt-4 dark:border-slate-800">
           <div className="mb-4 flex items-center space-x-3 px-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400">
               <span className="text-xs font-bold">{adminRole.substring(0, 2)}</span>
@@ -186,22 +199,34 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* Main Content Space */}
-      <div className="flex-1 pl-64">
+      <div className="min-w-0 lg:pl-60 xl:pl-64">
         {/* Top Header Bar */}
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-slate-200 bg-white/80 px-8 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/80">
-          <h2 className="text-sm font-bold text-slate-500 dark:text-slate-400">
+        <header className="sticky top-0 z-10 flex h-16 min-w-0 items-center justify-between gap-3 border-b border-slate-200 bg-white/85 px-4 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/85 sm:px-6 xl:px-8">
+          <button
+            type="button"
+            onClick={() => setIsSidebarOpen(true)}
+            className="grid h-10 w-10 shrink-0 place-content-center rounded-xl border border-slate-200 text-slate-600 transition hover:border-emerald-600 hover:text-emerald-700 dark:border-slate-800 dark:text-slate-300 dark:hover:border-emerald-500 lg:hidden"
+            aria-label="Mở menu quản trị"
+          >
+            <span className="space-y-1.5">
+              <span className="block h-0.5 w-5 bg-current" />
+              <span className="block h-0.5 w-5 bg-current" />
+              <span className="block h-0.5 w-5 bg-current" />
+            </span>
+          </button>
+          <h2 className="min-w-0 truncate text-sm font-bold text-slate-500 dark:text-slate-400">
             {menuItems.find((item) => item.path === pathname)?.name ?? "Hệ thống quản trị"}
           </h2>
-          <div className="flex items-center space-x-4">
+          <div className="flex shrink-0 items-center space-x-2 sm:space-x-4">
             <ThemeToggle />
-            <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
+            <span className="hidden items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400 sm:inline-flex">
               Chế độ quản trị viên
             </span>
           </div>
         </header>
 
         {/* Content Area */}
-        <main className="p-8">{children}</main>
+        <main className="min-w-0 p-4 sm:p-6 xl:p-8">{children}</main>
       </div>
     </div>
   );

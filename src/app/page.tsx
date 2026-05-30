@@ -55,14 +55,49 @@ function DocumentIcon({ name }: { name: (typeof documentGroups)[number]["icon"] 
   );
 }
 
+function BookDecoration({ className, variant = "closed" }: { className: string; variant?: "closed" | "open" }) {
+  if (variant === "open") {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 140 100" className={className} fill="none">
+        <path d="M68 20c-14-12-33-14-51-6v62c18-8 37-6 51 6V20Z" className="fill-emerald-100/70 dark:fill-emerald-900/35" />
+        <path d="M72 20c14-12 33-14 51-6v62c-18-8-37-6-51 6V20Z" className="fill-sky-100/75 dark:fill-sky-900/35" />
+        <path d="M70 20v64M20 26c14-4 28-2 42 6M120 26c-14-4-28-2-42 6M20 44c14-4 28-2 42 6M120 44c-14-4-28-2-42 6" className="stroke-emerald-700/25 dark:stroke-emerald-200/25" strokeWidth="4" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg aria-hidden="true" viewBox="0 0 120 120" className={className} fill="none">
+      <rect x="26" y="14" width="60" height="82" rx="10" className="fill-emerald-100/80 dark:fill-emerald-900/40" />
+      <rect x="38" y="22" width="60" height="82" rx="10" className="fill-white/80 dark:fill-slate-800/70" />
+      <path d="M50 38h34M50 52h27M50 66h31" className="stroke-emerald-700/35 dark:stroke-emerald-200/35" strokeWidth="5" strokeLinecap="round" />
+      <path d="M39 28v69" className="stroke-emerald-700/20 dark:stroke-emerald-200/20" strokeWidth="5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function HomeDecorations() {
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="absolute -left-24 top-16 h-80 w-80 rounded-full bg-emerald-200/35 blur-3xl dark:bg-emerald-900/25" />
+      <div className="absolute right-0 top-[30rem] h-96 w-96 rounded-full bg-sky-200/35 blur-3xl dark:bg-sky-900/25" />
+      <BookDecoration variant="open" className="absolute left-8 top-28 hidden h-28 w-40 -rotate-12 opacity-80 md:block" />
+      <BookDecoration className="absolute right-16 top-40 hidden h-28 w-28 rotate-12 opacity-75 lg:block" />
+      <BookDecoration variant="open" className="absolute -left-6 top-[44rem] hidden h-24 w-36 rotate-6 opacity-70 lg:block" />
+      <BookDecoration className="absolute bottom-36 right-8 hidden h-24 w-24 -rotate-12 opacity-65 md:block" />
+    </div>
+  );
+}
+
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-[#f8faf9] text-[#121b17]">
+    <div className="min-h-screen bg-[#f8faf9] text-[#121b17] dark:bg-slate-950 dark:text-slate-100">
       <SiteHeader />
 
-      <main>
-        <section className="mx-auto flex max-w-6xl flex-col items-center px-6 pb-20 pt-16 text-center sm:pt-24">
-          <span className="rounded-full bg-[#dfede7] px-4 py-2 text-xs font-medium text-emerald-800">
+      <main className="relative overflow-hidden bg-[radial-gradient(circle_at_12%_8%,rgba(16,185,129,0.16),transparent_28%),radial-gradient(circle_at_88%_32%,rgba(14,165,233,0.14),transparent_26%),linear-gradient(180deg,#f8faf9_0%,#ffffff_42%,#f4faf7_100%)] dark:bg-[radial-gradient(circle_at_12%_8%,rgba(16,185,129,0.12),transparent_28%),radial-gradient(circle_at_88%_32%,rgba(14,165,233,0.12),transparent_26%),linear-gradient(180deg,#020617_0%,#071410_45%,#020617_100%)]">
+        <HomeDecorations />
+        <section className="relative z-10 mx-auto flex max-w-6xl flex-col items-center px-6 pb-20 pt-16 text-center sm:pt-24">
+          <span className="rounded-full bg-[#dfede7] px-4 py-2 text-xs font-medium text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-200">
             • Nền tảng tài liệu trực tuyến
           </span>
           <h1 className="mt-7 max-w-3xl text-balance text-4xl font-bold leading-[1.14] tracking-tight text-[#101613] sm:text-6xl">
@@ -81,13 +116,13 @@ export default function HomePage() {
             </Link>
             <Link
               href="/pricing"
-              className="rounded-full border border-slate-200 bg-white px-7 py-3.5 text-sm font-medium text-slate-700 transition hover:border-emerald-700 hover:text-emerald-700"
+              className="rounded-full border border-slate-200 bg-white px-7 py-3.5 text-sm font-medium text-slate-700 transition hover:border-emerald-700 hover:text-emerald-700 dark:border-white/10 dark:bg-white/10 dark:text-slate-200 dark:hover:border-emerald-400 dark:hover:text-emerald-300"
             >
               Xem gói Premium
             </Link>
           </div>
 
-          <div className="mt-20 w-full max-w-5xl overflow-hidden rounded-[30px] bg-white shadow-[0_18px_46px_rgba(12,49,36,0.15)]">
+          <div className="mt-20 w-full max-w-5xl overflow-hidden rounded-[30px] bg-white shadow-[0_18px_46px_rgba(12,49,36,0.15)] ring-1 ring-emerald-900/5 dark:bg-slate-900 dark:shadow-[0_18px_46px_rgba(0,0,0,0.35)] dark:ring-white/10">
             <Image
               src="/images/hero-laptop.png"
               alt="Bảng điều khiển tài liệu hiển thị trên máy tính xách tay"
@@ -99,7 +134,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section id="tai-lieu" className="mx-auto max-w-6xl scroll-mt-20 px-6 pb-24 pt-4 text-center">
+        <section id="tai-lieu" className="relative z-10 mx-auto max-w-6xl scroll-mt-20 px-6 pb-24 pt-4 text-center">
           <h2 className="text-2xl font-bold tracking-tight text-slate-950">Khám phá tài liệu</h2>
           <p className="mt-2 text-sm text-slate-500">Hàng ngàn tài liệu chất lượng mỗi ngày</p>
           <div className="mt-10 grid gap-5 text-left md:grid-cols-3">
@@ -107,9 +142,9 @@ export default function HomePage() {
               <Link
                 key={group.title}
                 href="/documents"
-                className="group rounded-3xl border border-slate-100 bg-white p-7 shadow-[0_1px_3px_rgba(15,23,42,0.03)] transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-[0_10px_28px_rgba(12,49,36,0.08)]"
+                className="group rounded-3xl border border-slate-100 bg-white/90 p-7 shadow-[0_1px_3px_rgba(15,23,42,0.03)] backdrop-blur transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-[0_10px_28px_rgba(12,49,36,0.08)] dark:border-white/10 dark:bg-slate-900/80 dark:hover:border-emerald-500/60 dark:hover:shadow-[0_10px_28px_rgba(0,0,0,0.28)]"
               >
-                <span className="inline-flex rounded-xl bg-[#dcece5] p-3 text-[#006d45]">
+                <span className="inline-flex rounded-xl bg-[#dcece5] p-3 text-[#006d45] dark:bg-emerald-950/70 dark:text-emerald-300">
                   <DocumentIcon name={group.icon} />
                 </span>
                 <h3 className="mt-5 text-xl font-semibold text-slate-950">{group.title}</h3>
@@ -125,8 +160,8 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-6 pb-20">
-          <div className="grid overflow-hidden rounded-[28px] bg-[#007c4c] text-white lg:grid-cols-[1fr_1.05fr]">
+        <section className="relative z-10 mx-auto max-w-6xl px-6 pb-20">
+          <div className="grid overflow-hidden rounded-[28px] bg-[#007c4c] text-white shadow-[0_16px_44px_rgba(0,109,69,0.16)] dark:bg-emerald-950 dark:shadow-[0_16px_44px_rgba(0,0,0,0.35)] lg:grid-cols-[1fr_1.05fr]">
             <div className="flex flex-col justify-center p-9 sm:p-14">
               <h2 className="max-w-sm text-3xl font-bold leading-tight sm:text-4xl">
                 Bạn có tài liệu
@@ -156,7 +191,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="border-y border-slate-200 bg-white/30">
+        <section className="relative z-10 border-y border-slate-200 bg-white/50 backdrop-blur dark:border-white/10 dark:bg-slate-950/40">
           <div className="mx-auto grid max-w-5xl grid-cols-2 gap-10 px-6 py-16 text-center md:grid-cols-4">
             {stats.map((stat) => (
               <div key={stat.label}>
@@ -168,7 +203,7 @@ export default function HomePage() {
         </section>
       </main>
 
-      <footer className="bg-white/30">
+      <footer className="bg-white/50 backdrop-blur dark:bg-slate-950/60">
         <div className="mx-auto max-w-6xl px-6 pb-8 pt-16">
           <div className="grid gap-10 border-b border-slate-200 pb-16 sm:grid-cols-2 lg:grid-cols-4">
             <div>

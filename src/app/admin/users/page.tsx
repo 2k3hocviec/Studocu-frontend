@@ -134,10 +134,10 @@ export default function AdminUsersPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       {/* Search Filter Header */}
-      <div className="rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-900 border border-slate-100 dark:border-slate-800/40 animate-fadeIn">
-        <div className="flex max-w-md gap-2">
+      <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm animate-fadeIn dark:border-slate-800/40 dark:bg-slate-900 sm:p-6">
+        <div className="flex w-full gap-2 lg:max-w-md">
           <div className="relative flex-1">
             <input
               type="text"
@@ -167,7 +167,7 @@ export default function AdminUsersPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="min-w-[900px] w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-400 text-xs font-bold uppercase dark:border-slate-800 dark:bg-slate-900/50">
                   <th className="py-4 px-6">Thành viên</th>
@@ -232,7 +232,7 @@ export default function AdminUsersPage() {
 
         {/* Pagination Footer */}
         {meta && meta.totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4 dark:border-slate-800">
+          <div className="flex flex-col gap-3 border-t border-slate-100 px-4 py-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <span className="text-xs font-semibold text-slate-400">
               Trang {meta.currentPage} / {meta.totalPages} (Tổng {meta.totalItems} thành viên)
             </span>

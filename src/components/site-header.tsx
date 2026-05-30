@@ -22,6 +22,59 @@ type Subscription = {
   endDate: string;
 } | null;
 
+function DigitalLibraryLogo() {
+  return (
+    <span className="flex items-center gap-2.5" aria-label="Kho tài liệu số">
+      <span className="relative grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-white/10">
+        <svg viewBox="0 0 120 120" className="h-11 w-11" fill="none" aria-hidden="true">
+          <path
+            d="M92 25a45 45 0 0 1 11 22M102 71a45 45 0 0 1-29 30M47 102a45 45 0 0 1-29-28M18 47a45 45 0 0 1 29-29M62 17a45 45 0 0 1 23 6"
+            className="stroke-sky-700 dark:stroke-sky-300"
+            strokeWidth="7"
+            strokeLinecap="round"
+          />
+          <path
+            d="M25 76c14-8 29-8 42 0 11-8 24-9 37-3v11c-13-5-26-4-37 3-13-8-28-8-42 0V76Z"
+            className="fill-emerald-700 dark:fill-emerald-300"
+          />
+          <path
+            d="M34 46v29M55 40v35M82 46v29M96 46v29"
+            className="stroke-teal-700 dark:stroke-teal-300"
+            strokeWidth="9"
+            strokeLinecap="square"
+          />
+          <path
+            d="M42 66 56 75 78 58 93 29"
+            className="stroke-teal-800 dark:stroke-teal-200"
+            strokeWidth="9"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M63 58c-2-15 8-26 24-25 5 8 4 17-2 25"
+            className="stroke-teal-800 dark:stroke-teal-200"
+            strokeWidth="7"
+            strokeLinecap="round"
+          />
+          <path
+            d="M87 33c6-10 14-15 24-15-1 13-5 21-14 27 8-1 15 1 21 5-8 8-18 10-30 6"
+            className="stroke-teal-800 dark:stroke-teal-200"
+            strokeWidth="6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </span>
+      <span className="hidden leading-none sm:block">
+        <span className="block text-[15px] font-black tracking-[0.16em] text-slate-800 dark:text-slate-100">
+          KHO TÀI LIỆU SỐ
+        </span>
+        <span className="mt-1 block h-0.5 w-full rounded-full bg-gradient-to-r from-sky-700 via-teal-600 to-emerald-600 dark:from-sky-300 dark:via-teal-300 dark:to-emerald-300" />
+      </span>
+    </span>
+  );
+}
+
 export function SiteHeader({ authenticated = false }: SiteHeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -95,7 +148,7 @@ export function SiteHeader({ authenticated = false }: SiteHeaderProps) {
     <header className="relative z-30 border-b border-slate-200 bg-white dark:border-white/10 dark:bg-slate-950">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-5 px-6">
         <Link href={authenticated ? "/user" : "/"} className="flex shrink-0 items-center gap-2">
-          <span className="text-xl font-bold text-[#006d45] dark:text-emerald-400">HọcLiệu</span>
+          <DigitalLibraryLogo />
           {hasPremium ? <PremiumBadge compact /> : null}
         </Link>
 

@@ -19,6 +19,37 @@ type Subscription = {
   endDate: string;
 } | null;
 
+type PaymentPlan = {
+  id: number;
+  name: string;
+  price: number;
+  durationDays: number;
+  downloadLimit: number;
+  description: string | null;
+};
+
+type PaginationData = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+
+type PaymentHistoryItem = {
+  id: number;
+  amount: number;
+  method: "MOCK" | "VNPAY";
+  status: "PENDING" | "PAID" | "FAILED";
+  paidAt: string | null;
+  createdAt: string;
+  plan: PaymentPlan;
+};
+
+type PaymentHistoryPage = {
+  items: PaymentHistoryItem[];
+  pagination: PaginationData;
+};
+
 type ApiResponse<T> = {
   success: boolean;
   message?: string;
@@ -47,6 +78,15 @@ function formatDate(value: string) {
   return new Intl.DateTimeFormat("vi-VN").format(new Date(value));
 }
 
+function formatMoney(value: number) {
+  return new Intl.NumberFormat("vi-VN").format(value);
+}
+
+function formatDateTime(value: string | null) {
+  if (!value) return "Chưa hoàn tất";
+  return new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short" }).format(new Date(value));
+}
+
 const documentTypeLabels: Record<string, string> = {
   LECTURE: "Bài giảng",
   EXAM: "Đề thi",
@@ -62,11 +102,28 @@ const statusLabels: Record<ProfileDocument["status"], string> = {
   HIDDEN: "Đã ẩn",
 };
 
-const statusClasses: Record<ProfileDocument["status"], string> = {
-  PENDING: "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-200",
-  APPROVED: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200",
-  REJECTED: "bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-200",
-  HIDDEN: "bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200",
+const statusTextClasses: Record<ProfileDocument["status"], string> = {
+  PENDING: "text-amber-700 dark:text-amber-200",
+  APPROVED: "text-emerald-700 dark:text-emerald-200",
+  REJECTED: "text-rose-700 dark:text-rose-200",
+  HIDDEN: "text-slate-600 dark:text-slate-300",
+};
+
+const paymentStatusLabels: Record<PaymentHistoryItem["status"], string> = {
+  PENDING: "Đang chờ",
+  PAID: "Thành công",
+  FAILED: "Thất bại",
+};
+
+const paymentStatusClasses: Record<PaymentHistoryItem["status"], string> = {
+  PENDING: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300",
+  PAID: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300",
+  FAILED: "bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300",
+};
+
+const paymentMethodLabels: Record<PaymentHistoryItem["method"], string> = {
+  MOCK: "Thanh toán thử",
+  VNPAY: "VNPAY",
 };
 
 export function ProfilePanel() {
@@ -86,6 +143,11 @@ export function ProfilePanel() {
   const [libraryDocuments, setLibraryDocuments] = useState<ProfileDocument[]>([]);
   const [isLibraryLoading, setIsLibraryLoading] = useState(false);
   const [libraryError, setLibraryError] = useState("");
+  const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryItem[]>([]);
+  const [paymentPagination, setPaymentPagination] = useState<PaginationData | null>(null);
+  const [paymentPage, setPaymentPage] = useState(1);
+  const [isPaymentHistoryLoading, setIsPaymentHistoryLoading] = useState(false);
+  const [paymentHistoryError, setPaymentHistoryError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [passwordNotice, setPasswordNotice] = useState("");
   const [passwordForm, setPasswordForm] = useState({
@@ -148,6 +210,38 @@ export function ProfilePanel() {
     void loadProfile();
   }, [router]);
 
+  useEffect(() => {
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) return;
+
+    const loadPaymentHistory = async () => {
+      setIsPaymentHistoryLoading(true);
+      setPaymentHistoryError("");
+
+      try {
+        const response = await fetch(`${apiUrl}/payments/history?page=${paymentPage}&limit=8`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        const result = (await response.json()) as ApiResponse<PaymentHistoryPage>;
+
+        if (!response.ok || !result.data) {
+          throw new Error(result.message ?? "Không thể tải lịch sử thanh toán.");
+        }
+
+        setPaymentHistory(result.data.items);
+        setPaymentPagination(result.data.pagination);
+      } catch (cause) {
+        setPaymentHistory([]);
+        setPaymentPagination(null);
+        setPaymentHistoryError(cause instanceof Error ? cause.message : "Không thể tải lịch sử thanh toán.");
+      } finally {
+        setIsPaymentHistoryLoading(false);
+      }
+    };
+
+    void loadPaymentHistory();
+  }, [paymentPage]);
+
   function authToken() {
     const accessToken = localStorage.getItem("accessToken");
     if (!accessToken) router.replace("/login");
@@ -155,6 +249,13 @@ export function ProfilePanel() {
   }
 
   async function loadLibrary(mode: "mine" | "recent") {
+    if (activeLibrary === mode) {
+      setActiveLibrary(null);
+      setLibraryError("");
+      setIsLibraryLoading(false);
+      return;
+    }
+
     const accessToken = authToken();
     if (!accessToken) return;
 
@@ -338,33 +439,40 @@ export function ProfilePanel() {
           </p>
           <p className="mt-1 break-all text-sm leading-5 text-slate-500 dark:text-slate-400">{profile?.email ?? "Thành viên HọcLiệu"}</p>
           <div className="mt-7 grid gap-3 text-left">
-            <button
-              type="button"
-              onClick={() => void loadLibrary("mine")}
-              className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-bold transition ${
-                activeLibrary === "mine"
-                  ? "border-emerald-500 bg-emerald-600 text-white shadow-lg shadow-emerald-950/15"
-                  : "border-slate-200 bg-slate-50 text-slate-700 hover:border-emerald-300 hover:text-emerald-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:border-emerald-700"
-              }`}
-            >
-              <span>Tài liệu của tôi</span>
-              <span aria-hidden="true">→</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => void loadLibrary("recent")}
-              className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-bold transition ${
-                activeLibrary === "recent"
-                  ? "border-emerald-500 bg-emerald-600 text-white shadow-lg shadow-emerald-950/15"
-                  : "border-slate-200 bg-slate-50 text-slate-700 hover:border-emerald-300 hover:text-emerald-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:border-emerald-700"
-              }`}
-            >
-              <span>Tài liệu gần đây</span>
-              <span aria-hidden="true">→</span>
-            </button>
+            <div className="grid gap-2">
+              <LibraryToggleButton
+                mode="mine"
+                isOpen={activeLibrary === "mine"}
+                onClick={() => void loadLibrary("mine")}
+              />
+              {activeLibrary === "mine" ? (
+                <DocumentLibraryPanel
+                  mode="mine"
+                  documents={libraryDocuments}
+                  isLoading={isLibraryLoading}
+                  error={libraryError}
+                />
+              ) : null}
+            </div>
+            <div className="grid gap-2">
+              <LibraryToggleButton
+                mode="recent"
+                isOpen={activeLibrary === "recent"}
+                onClick={() => void loadLibrary("recent")}
+              />
+              {activeLibrary === "recent" ? (
+                <DocumentLibraryPanel
+                  mode="recent"
+                  documents={libraryDocuments}
+                  isLoading={isLibraryLoading}
+                  error={libraryError}
+                />
+              ) : null}
+            </div>
           </div>
         </aside>
 
+        <div className="grid min-w-0 gap-6">
         <section className="rounded-2xl border border-slate-200 bg-white p-7 shadow-[0_7px_18px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-white/5 sm:px-9 sm:pb-9 sm:pt-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
@@ -441,15 +549,17 @@ export function ProfilePanel() {
               </form>
             </div>
           )}
-          {activeLibrary ? (
-            <DocumentLibraryPanel
-              mode={activeLibrary}
-              documents={libraryDocuments}
-              isLoading={isLibraryLoading}
-              error={libraryError}
-            />
-          ) : null}
         </section>
+
+          <PaymentHistoryPanel
+            payments={paymentHistory}
+            pagination={paymentPagination}
+            isLoading={isPaymentHistoryLoading}
+            error={paymentHistoryError}
+            onPrevious={() => setPaymentPage((page) => Math.max(1, page - 1))}
+            onNext={() => setPaymentPage((page) => Math.min(paymentPagination?.totalPages ?? page, page + 1))}
+          />
+        </div>
       </main>
 
       {isPasswordModalOpen ? (
@@ -507,6 +617,112 @@ export function ProfilePanel() {
   );
 }
 
+function PaymentHistoryPanel({
+  payments,
+  pagination,
+  isLoading,
+  error,
+  onPrevious,
+  onNext,
+}: {
+  payments: PaymentHistoryItem[];
+  pagination: PaginationData | null;
+  isLoading: boolean;
+  error: string;
+  onPrevious: () => void;
+  onNext: () => void;
+}) {
+  return (
+    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_7px_18px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-white/5 sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Thanh toán</p>
+          <h2 className="mt-1 text-xl font-bold text-[#123329] dark:text-white">Lịch sử thanh toán</h2>
+        </div>
+        {pagination ? (
+          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 dark:bg-white/10 dark:text-slate-300">
+            {pagination.total} giao dịch
+          </span>
+        ) : null}
+      </div>
+
+      {error ? (
+        <p className="mt-5 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:bg-rose-500/10 dark:text-rose-300">{error}</p>
+      ) : null}
+
+      {isLoading ? (
+        <p className="mt-5 text-sm text-slate-500 dark:text-slate-400">Đang tải lịch sử thanh toán...</p>
+      ) : payments.length === 0 && !error ? (
+        <p className="mt-5 rounded-xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500 dark:border-white/10 dark:text-slate-400">
+          Bạn chưa có giao dịch thanh toán nào.
+        </p>
+      ) : (
+        <div className="mt-5 overflow-hidden rounded-xl border border-slate-100 dark:border-white/10">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[720px] text-left text-sm">
+              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-white/5 dark:text-slate-400">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">Gói</th>
+                  <th className="px-4 py-3 font-semibold">Số tiền</th>
+                  <th className="px-4 py-3 font-semibold">Phương thức</th>
+                  <th className="px-4 py-3 font-semibold">Trạng thái</th>
+                  <th className="px-4 py-3 font-semibold">Tạo lúc</th>
+                  <th className="px-4 py-3 font-semibold">Thanh toán lúc</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-white/10">
+                {payments.map((payment) => (
+                  <tr key={payment.id} className="bg-white text-slate-700 dark:bg-transparent dark:text-slate-200">
+                    <td className="px-4 py-3">
+                      <p className="font-semibold text-slate-950 dark:text-white">{payment.plan.name}</p>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{payment.plan.durationDays} ngày Premium</p>
+                    </td>
+                    <td className="px-4 py-3 font-semibold text-[#00734b] dark:text-emerald-300">{formatMoney(payment.amount)}đ</td>
+                    <td className="px-4 py-3">{paymentMethodLabels[payment.method]}</td>
+                    <td className="px-4 py-3">
+                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${paymentStatusClasses[payment.status]}`}>
+                        {paymentStatusLabels[payment.status]}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{formatDateTime(payment.createdAt)}</td>
+                    <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{formatDateTime(payment.paidAt)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {pagination && pagination.totalPages > 1 ? (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-slate-500 dark:text-slate-400">
+          <span>
+            Trang {pagination.page}/{pagination.totalPages}
+          </span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={pagination.page <= 1 || isLoading}
+              onClick={onPrevious}
+              className="rounded-lg border border-slate-200 px-3 py-2 font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:text-slate-200"
+            >
+              Trước
+            </button>
+            <button
+              type="button"
+              disabled={pagination.page >= pagination.totalPages || isLoading}
+              onClick={onNext}
+              className="rounded-lg border border-slate-200 px-3 py-2 font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:text-slate-200"
+            >
+              Sau
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 function PasswordField({
   label,
   value,
@@ -536,6 +752,73 @@ function PasswordField({
   );
 }
 
+function LibraryToggleButton({
+  mode,
+  isOpen,
+  onClick,
+}: {
+  mode: "mine" | "recent";
+  isOpen: boolean;
+  onClick: () => void;
+}) {
+  const title = mode === "mine" ? "Tài liệu của tôi" : "Tài liệu gần đây";
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-expanded={isOpen}
+      className={`flex w-full items-center justify-between rounded-lg border px-3 py-3 text-left text-sm font-bold transition ${
+        isOpen
+          ? "border-slate-500 bg-white text-slate-700 shadow-sm dark:border-slate-400 dark:bg-slate-900 dark:text-slate-100"
+          : "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:border-slate-600"
+      }`}
+    >
+      <span className="flex min-w-0 items-center gap-2">
+        <span className="grid h-6 w-6 shrink-0 place-content-center rounded-full bg-slate-700 text-white dark:bg-slate-200 dark:text-slate-900">
+          {mode === "recent" ? <ClockIcon /> : <DocumentIcon />}
+        </span>
+        <span className="truncate">{title}</span>
+      </span>
+      <ChevronIcon isOpen={isOpen} />
+    </button>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2">
+      <circle cx="12" cy="12" r="8" />
+      <path d="M12 8v4l3 2" />
+    </svg>
+  );
+}
+
+function DocumentIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M7 3h7l4 4v14H7z" />
+      <path d="M14 3v5h5" />
+      <path d="M9.5 13h5" />
+      <path d="M9.5 17h4" />
+    </svg>
+  );
+}
+
+function ChevronIcon({ isOpen }: { isOpen: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={`h-5 w-5 shrink-0 text-slate-600 transition-transform dark:text-slate-300 ${isOpen ? "rotate-180" : ""}`}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
 function DocumentLibraryPanel({
   mode,
   documents,
@@ -547,31 +830,20 @@ function DocumentLibraryPanel({
   isLoading: boolean;
   error: string;
 }) {
-  const title = mode === "mine" ? "Tài liệu của tôi" : "Tài liệu gần đây";
   const emptyText = mode === "mine"
     ? "Bạn chưa tải lên tài liệu nào."
     : "Bạn chưa xem tài liệu nào gần đây.";
 
   return (
-    <section className="mt-8 border-t border-slate-200 pt-7 dark:border-white/10">
-      <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-[#123329] dark:text-white">{title}</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            {mode === "mine" ? "Theo dõi các tài liệu bạn đã tải lên." : "10 tài liệu bạn mở xem gần nhất."}
-          </p>
-        </div>
-        <span className="text-sm font-semibold text-slate-400">{documents.length} tài liệu</span>
-      </div>
-
+    <section className="overflow-hidden rounded-b-lg border-x border-b border-slate-200 bg-white dark:border-white/10 dark:bg-slate-950/50">
       {isLoading ? (
-        <p className="mt-5 text-sm text-slate-500 dark:text-slate-400">Đang tải danh sách tài liệu...</p>
+        <p className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400">Đang tải danh sách tài liệu...</p>
       ) : error ? (
-        <p className="mt-5 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm font-medium text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200">{error}</p>
+        <p className="m-3 rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs font-medium text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200">{error}</p>
       ) : documents.length === 0 ? (
-        <p className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-400">{emptyText}</p>
+        <p className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400">{emptyText}</p>
       ) : (
-        <div className="mt-5 grid gap-4">
+        <div className="max-h-72 overflow-y-auto">
           {documents.map((document) => (
             <ProfileDocumentCard key={`${mode}-${document.id}`} document={document} showStatus={mode === "mine"} />
           ))}
@@ -583,47 +855,30 @@ function DocumentLibraryPanel({
 
 function ProfileDocumentCard({ document, showStatus }: { document: ProfileDocument; showStatus: boolean }) {
   return (
-    <article className="grid gap-4 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-white/10 dark:bg-slate-950/60 sm:grid-cols-[132px_1fr]">
-      <div className="aspect-[4/3] overflow-hidden rounded-lg bg-emerald-50 dark:bg-slate-900">
-        {document.coverImageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={document.coverImageUrl} alt={document.title} className="h-full w-full object-cover" />
-        ) : (
-          <div className="grid h-full place-content-center px-3 text-center text-xs font-semibold text-slate-400">
-            Chưa có ảnh xem trước
-          </div>
-        )}
-      </div>
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200">
-            {documentTypeLabels[document.documentType] ?? document.documentType}
-          </span>
+    <Link
+      href={`/documents/${document.id}`}
+      className="group flex gap-3 border-b border-slate-100 px-4 py-3 text-slate-700 transition last:border-b-0 hover:bg-sky-100 dark:border-white/10 dark:text-slate-200 dark:hover:bg-sky-950/40"
+    >
+      <span className="mt-1 grid h-5 w-5 shrink-0 place-content-center rounded bg-sky-100 text-sky-500 dark:bg-sky-950 dark:text-sky-300">
+        <DocumentIcon />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block overflow-hidden break-words text-sm font-semibold leading-6 [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:3] group-hover:text-slate-950 dark:group-hover:text-white">
+          {document.title}
+        </span>
+        <span className="mt-1 flex flex-wrap gap-x-2 gap-y-1 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+          <span>{documentTypeLabels[document.documentType] ?? document.documentType}</span>
           {showStatus ? (
-            <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${statusClasses[document.status]}`}>
+            <span className={statusTextClasses[document.status]}>
               {statusLabels[document.status]}
             </span>
           ) : null}
-        </div>
-        <h3 className="mt-3 overflow-hidden break-words text-base font-bold text-slate-950 [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] dark:text-white">
-          {document.title}
-        </h3>
-        <p className="mt-1 overflow-hidden break-words text-sm leading-6 text-slate-500 [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] dark:text-slate-400">
-          {document.description || "Không có mô tả."}
-        </p>
-        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
-          <span>{document.subject.name}</span>
-          <span>{document.school.name}</span>
-          {document.totalPages ? <span>{document.totalPages} trang</span> : null}
-          <span>{document.viewCount} lượt xem</span>
           {document.viewedAt ? <span>Xem {formatDate(document.viewedAt)}</span> : null}
-        </div>
-        <div className="mt-4 flex justify-end">
-          <Link href={`/documents/${document.id}`} className="app-button-secondary app-button-compact">
-            Xem tài liệu
-          </Link>
-        </div>
-      </div>
-    </article>
+        </span>
+        <span className="mt-1 block overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-slate-400">
+          {document.subject.name} · {document.school.name}
+        </span>
+      </span>
+    </Link>
   );
 }

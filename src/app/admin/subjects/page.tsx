@@ -239,10 +239,10 @@ export default function AdminSubjectsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       {/* Search Filter Toolbar */}
-      <div className="flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-900 md:flex-row md:items-center md:justify-between border border-slate-100 dark:border-slate-800/40 animate-fadeIn">
-        <div className="flex flex-1 max-w-md gap-2">
+      <div className="flex flex-col gap-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm animate-fadeIn dark:border-slate-800/40 dark:bg-slate-900 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex w-full flex-1 gap-2 lg:max-w-md">
           <div className="relative flex-1">
             <input
               type="text"
@@ -262,9 +262,9 @@ export default function AdminSubjectsPage() {
         <button
           onClick={openAddModal}
           disabled={schools.length === 0}
-          className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 transition-colors flex items-center justify-center space-x-1.5 disabled:opacity-50"
+          className="flex w-fit self-start rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50 lg:self-auto"
         >
-          <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="mr-1.5 h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
           </svg>
           <span>Thêm môn học</span>
@@ -283,7 +283,7 @@ export default function AdminSubjectsPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="min-w-[900px] w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-400 text-xs font-bold uppercase dark:border-slate-800 dark:bg-slate-900/50">
                   <th className="py-4 px-6">Tên môn học</th>
@@ -331,7 +331,7 @@ export default function AdminSubjectsPage() {
 
         {/* Pagination Footer */}
         {meta && meta.totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4 dark:border-slate-800">
+          <div className="flex flex-col gap-3 border-t border-slate-100 px-4 py-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <span className="text-xs font-semibold text-slate-400">
               Trang {meta.currentPage} / {meta.totalPages} (Tổng {meta.totalItems} môn học)
             </span>
@@ -357,8 +357,8 @@ export default function AdminSubjectsPage() {
 
       {/* Add/Edit Subject Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900 animate-scaleUp">
+        <div className="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+          <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-xl animate-scaleUp dark:bg-slate-900">
             <h3 className="text-lg font-bold text-slate-850 dark:text-slate-200">
               {editingSubject ? "Chỉnh sửa môn học" : "Thêm môn học mới"}
             </h3>
