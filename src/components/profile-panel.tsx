@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, MouseEvent, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PremiumBadge } from "@/components/premium-badge";
 import { SiteHeader } from "@/components/site-header";
@@ -24,11 +25,49 @@ type ApiResponse<T> = {
   data?: T;
 };
 
+type ProfileDocument = {
+  id: number;
+  title: string;
+  description?: string | null;
+  documentType: string;
+  status: "PENDING" | "APPROVED" | "REJECTED" | "HIDDEN";
+  viewCount: number;
+  downloadCount: number;
+  createdAt: string;
+  viewedAt?: string;
+  coverImageUrl?: string | null;
+  totalPages?: number | null;
+  school: { name: string };
+  subject: { name: string };
+};
+
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("vi-VN").format(new Date(value));
 }
+
+const documentTypeLabels: Record<string, string> = {
+  LECTURE: "Bài giảng",
+  EXAM: "Đề thi",
+  NOTE: "Ghi chú",
+  ASSIGNMENT: "Bài tập",
+  OTHER: "Khác",
+};
+
+const statusLabels: Record<ProfileDocument["status"], string> = {
+  PENDING: "Chờ duyệt",
+  APPROVED: "Đã duyệt",
+  REJECTED: "Bị từ chối",
+  HIDDEN: "Đã ẩn",
+};
+
+const statusClasses: Record<ProfileDocument["status"], string> = {
+  PENDING: "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-200",
+  APPROVED: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200",
+  REJECTED: "bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-200",
+  HIDDEN: "bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200",
+};
 
 export function ProfilePanel() {
   const router = useRouter();
@@ -43,6 +82,10 @@ export function ProfilePanel() {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [profileError, setProfileError] = useState("");
   const [profileNotice, setProfileNotice] = useState("");
+  const [activeLibrary, setActiveLibrary] = useState<"mine" | "recent" | null>(null);
+  const [libraryDocuments, setLibraryDocuments] = useState<ProfileDocument[]>([]);
+  const [isLibraryLoading, setIsLibraryLoading] = useState(false);
+  const [libraryError, setLibraryError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [passwordNotice, setPasswordNotice] = useState("");
   const [passwordForm, setPasswordForm] = useState({
@@ -109,6 +152,36 @@ export function ProfilePanel() {
     const accessToken = localStorage.getItem("accessToken");
     if (!accessToken) router.replace("/login");
     return accessToken;
+  }
+
+  async function loadLibrary(mode: "mine" | "recent") {
+    const accessToken = authToken();
+    if (!accessToken) return;
+
+    setActiveLibrary(mode);
+    setLibraryError("");
+    setIsLibraryLoading(true);
+
+    try {
+      const endpoint = mode === "mine"
+        ? `${apiUrl}/users/me/documents`
+        : `${apiUrl}/users/me/recent-documents?limit=10`;
+      const response = await fetch(endpoint, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const result = (await response.json()) as ApiResponse<ProfileDocument[]>;
+
+      if (!response.ok || !result.data) {
+        throw new Error(result.message ?? "Không thể tải danh sách tài liệu.");
+      }
+
+      setLibraryDocuments(result.data);
+    } catch (cause) {
+      setLibraryDocuments([]);
+      setLibraryError(cause instanceof Error ? cause.message : "Không thể tải danh sách tài liệu.");
+    } finally {
+      setIsLibraryLoading(false);
+    }
   }
 
   function openPasswordModal() {
@@ -264,6 +337,32 @@ export function ProfilePanel() {
             {profile?.fullName || (isLoading ? "Đang tải..." : "Thông tin tài khoản")}
           </p>
           <p className="mt-1 break-all text-sm leading-5 text-slate-500 dark:text-slate-400">{profile?.email ?? "Thành viên HọcLiệu"}</p>
+          <div className="mt-7 grid gap-3 text-left">
+            <button
+              type="button"
+              onClick={() => void loadLibrary("mine")}
+              className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-bold transition ${
+                activeLibrary === "mine"
+                  ? "border-emerald-500 bg-emerald-600 text-white shadow-lg shadow-emerald-950/15"
+                  : "border-slate-200 bg-slate-50 text-slate-700 hover:border-emerald-300 hover:text-emerald-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:border-emerald-700"
+              }`}
+            >
+              <span>Tài liệu của tôi</span>
+              <span aria-hidden="true">→</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => void loadLibrary("recent")}
+              className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-bold transition ${
+                activeLibrary === "recent"
+                  ? "border-emerald-500 bg-emerald-600 text-white shadow-lg shadow-emerald-950/15"
+                  : "border-slate-200 bg-slate-50 text-slate-700 hover:border-emerald-300 hover:text-emerald-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:border-emerald-700"
+              }`}
+            >
+              <span>Tài liệu gần đây</span>
+              <span aria-hidden="true">→</span>
+            </button>
+          </div>
         </aside>
 
         <section className="rounded-2xl border border-slate-200 bg-white p-7 shadow-[0_7px_18px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-white/5 sm:px-9 sm:pb-9 sm:pt-8">
@@ -342,6 +441,14 @@ export function ProfilePanel() {
               </form>
             </div>
           )}
+          {activeLibrary ? (
+            <DocumentLibraryPanel
+              mode={activeLibrary}
+              documents={libraryDocuments}
+              isLoading={isLibraryLoading}
+              error={libraryError}
+            />
+          ) : null}
         </section>
       </main>
 
@@ -426,5 +533,97 @@ function PasswordField({
         />
       </span>
     </label>
+  );
+}
+
+function DocumentLibraryPanel({
+  mode,
+  documents,
+  isLoading,
+  error,
+}: {
+  mode: "mine" | "recent";
+  documents: ProfileDocument[];
+  isLoading: boolean;
+  error: string;
+}) {
+  const title = mode === "mine" ? "Tài liệu của tôi" : "Tài liệu gần đây";
+  const emptyText = mode === "mine"
+    ? "Bạn chưa tải lên tài liệu nào."
+    : "Bạn chưa xem tài liệu nào gần đây.";
+
+  return (
+    <section className="mt-8 border-t border-slate-200 pt-7 dark:border-white/10">
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-[#123329] dark:text-white">{title}</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            {mode === "mine" ? "Theo dõi các tài liệu bạn đã tải lên." : "10 tài liệu bạn mở xem gần nhất."}
+          </p>
+        </div>
+        <span className="text-sm font-semibold text-slate-400">{documents.length} tài liệu</span>
+      </div>
+
+      {isLoading ? (
+        <p className="mt-5 text-sm text-slate-500 dark:text-slate-400">Đang tải danh sách tài liệu...</p>
+      ) : error ? (
+        <p className="mt-5 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm font-medium text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200">{error}</p>
+      ) : documents.length === 0 ? (
+        <p className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-400">{emptyText}</p>
+      ) : (
+        <div className="mt-5 grid gap-4">
+          {documents.map((document) => (
+            <ProfileDocumentCard key={`${mode}-${document.id}`} document={document} showStatus={mode === "mine"} />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function ProfileDocumentCard({ document, showStatus }: { document: ProfileDocument; showStatus: boolean }) {
+  return (
+    <article className="grid gap-4 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-white/10 dark:bg-slate-950/60 sm:grid-cols-[132px_1fr]">
+      <div className="aspect-[4/3] overflow-hidden rounded-lg bg-emerald-50 dark:bg-slate-900">
+        {document.coverImageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={document.coverImageUrl} alt={document.title} className="h-full w-full object-cover" />
+        ) : (
+          <div className="grid h-full place-content-center px-3 text-center text-xs font-semibold text-slate-400">
+            Chưa có ảnh xem trước
+          </div>
+        )}
+      </div>
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200">
+            {documentTypeLabels[document.documentType] ?? document.documentType}
+          </span>
+          {showStatus ? (
+            <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${statusClasses[document.status]}`}>
+              {statusLabels[document.status]}
+            </span>
+          ) : null}
+        </div>
+        <h3 className="mt-3 overflow-hidden break-words text-base font-bold text-slate-950 [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] dark:text-white">
+          {document.title}
+        </h3>
+        <p className="mt-1 overflow-hidden break-words text-sm leading-6 text-slate-500 [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] dark:text-slate-400">
+          {document.description || "Không có mô tả."}
+        </p>
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
+          <span>{document.subject.name}</span>
+          <span>{document.school.name}</span>
+          {document.totalPages ? <span>{document.totalPages} trang</span> : null}
+          <span>{document.viewCount} lượt xem</span>
+          {document.viewedAt ? <span>Xem {formatDate(document.viewedAt)}</span> : null}
+        </div>
+        <div className="mt-4 flex justify-end">
+          <Link href={`/documents/${document.id}`} className="app-button-secondary app-button-compact">
+            Xem tài liệu
+          </Link>
+        </div>
+      </div>
+    </article>
   );
 }

@@ -27,7 +27,6 @@ type ReportDetail = Omit<ReportItem, "document" | "handler"> & {
     description?: string | null;
     status: string;
     documentType: string;
-    isPremium: boolean;
     viewCount: number;
     downloadCount: number;
     rejectReason?: string | null;

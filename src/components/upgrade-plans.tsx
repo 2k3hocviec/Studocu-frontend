@@ -105,7 +105,22 @@ async function request<T>(endpoint: string, accessToken: string, init?: RequestI
   return result.data;
 }
 
-export function UpgradePlans() {
+async function publicRequest<T>(endpoint: string) {
+  const response = await fetch(`${apiUrl}${endpoint}`);
+  const result = (await response.json()) as ApiResponse<T>;
+
+  if (!response.ok || !result.success || result.data === undefined) {
+    throw new Error(result.message ?? "Không thể kết nối tới máy chủ.");
+  }
+
+  return result.data;
+}
+
+type UpgradePlansProps = {
+  authenticated?: boolean;
+};
+
+export function UpgradePlans({ authenticated = true }: UpgradePlansProps) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -130,7 +145,18 @@ export function UpgradePlans() {
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
     if (!accessToken) {
-      router.replace("/login");
+      if (authenticated) {
+        router.replace("/login");
+      } else {
+        publicRequest<PageData<Plan>>("/subscriptions/plans?page=1&limit=100")
+          .then((planPage) => {
+            setPlans(planPage.items);
+          })
+          .catch((requestError) => {
+            setError(requestError instanceof Error ? requestError.message : "Không thể tải các gói Premium.");
+          })
+          .finally(() => setIsLoading(false));
+      }
       return;
     }
 
@@ -139,12 +165,12 @@ export function UpgradePlans() {
         setError(requestError instanceof Error ? requestError.message : "Không thể tải các gói Premium.");
       })
       .finally(() => setIsLoading(false));
-  }, [loadMembership, router]);
+  }, [authenticated, loadMembership, router]);
 
   async function enroll(plan: Plan) {
     const accessToken = localStorage.getItem("accessToken");
     if (!accessToken) {
-      router.replace("/login");
+      router.push("/login");
       return;
     }
 
@@ -168,14 +194,18 @@ export function UpgradePlans() {
 
   return (
     <div className="min-h-screen bg-[#f5f8f7] text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <SiteHeader authenticated />
+      <SiteHeader authenticated={authenticated} />
 
       <main className="profile-pattern mx-auto min-h-[calc(100vh-4rem)] max-w-6xl px-6 py-8 sm:py-10">
         <section className="rounded-2xl bg-gradient-to-r from-[#56b09c] to-[#70c4b4] px-7 py-8 text-[#12382f] shadow-sm sm:px-9">
           <p className="text-sm font-medium text-emerald-950/70">Tài khoản Premium</p>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Chọn nhịp học phù hợp</h1>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
+            {authenticated ? "Chọn nhịp học phù hợp" : "Chọn gói Premium phù hợp"}
+          </h1>
           <p className="mt-3 max-w-2xl text-sm text-emerald-950/75 sm:text-base">
-            Mỗi gói đều mở khóa xem và tải tài liệu Premium không giới hạn trong thời hạn đã kích hoạt.
+            {authenticated
+              ? "Mỗi gói đều kích hoạt quyền lợi Premium cho tài khoản trong thời hạn đã chọn."
+              : "Xem trước các gói Premium. Khi bạn chọn đăng ký, hệ thống sẽ chuyển đến trang đăng nhập."}
           </p>
         </section>
 
@@ -245,7 +275,7 @@ export function UpgradePlans() {
                   <div className="mt-5 flex-1 space-y-3 border-t border-slate-100 pt-5 text-sm text-slate-600 dark:border-white/10 dark:text-slate-300">
                     <p className="flex items-start gap-2">
                       <span className="text-[#16825f] dark:text-emerald-300">✓</span>
-                      <span>Không giới hạn xem/tải tài liệu Premium trong thời hạn gói</span>
+                      <span>Kích hoạt quyền lợi tài khoản Premium trong thời hạn gói</span>
                     </p>
                     {benefit.points.map((point) => (
                       <p key={point} className="flex items-start gap-2">
@@ -267,11 +297,13 @@ export function UpgradePlans() {
                     onClick={() => void enroll(plan)}
                     className={`mt-6 w-full ${highlighted ? "app-button-primary" : "app-button-secondary"}`}
                   >
-                    {processingId === plan.id
-                      ? "Đang chuyển đến VNPAY..."
-                      : subscription
-                        ? "Gia hạn Premium qua VNPAY"
-                        : "Kích hoạt Premium"}
+                    {!authenticated && !user
+                      ? "Đăng ký"
+                      : processingId === plan.id
+                        ? "Đang chuyển đến VNPAY..."
+                        : subscription
+                          ? "Gia hạn Premium qua VNPAY"
+                          : "Kích hoạt Premium"}
                   </button>
                 </article>
               );

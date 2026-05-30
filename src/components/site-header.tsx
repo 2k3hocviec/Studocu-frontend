@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { PremiumBadge } from "@/components/premium-badge";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -23,9 +23,21 @@ type Subscription = {
 } | null;
 
 export function SiteHeader({ authenticated = false }: SiteHeaderProps) {
+  const pathname = usePathname();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hasPremium, setHasPremium] = useState(false);
+
+  const publicNavItems = [
+    { href: "/", label: "Trang chủ", active: pathname === "/" },
+    { href: "/documents", label: "Tài liệu", active: pathname.startsWith("/documents") },
+    { href: "/pricing", label: "Gói Premium", active: pathname === "/pricing" },
+  ];
+
+  const publicLinkClass = (active: boolean) =>
+    active
+      ? "border-b-2 border-[#006d45] py-5 font-medium text-[#006d45] dark:border-emerald-400 dark:text-emerald-400"
+      : "py-5 transition hover:text-[#006d45] dark:hover:text-emerald-400";
 
   useEffect(() => {
     if (!authenticated) {
@@ -109,10 +121,11 @@ export function SiteHeader({ authenticated = false }: SiteHeaderProps) {
         ) : (
           <>
             <nav className="hidden items-center gap-8 text-sm text-slate-500 dark:text-slate-300 md:flex">
-              <Link href="/" className="border-b-2 border-[#006d45] py-5 font-medium text-[#006d45] dark:border-emerald-400 dark:text-emerald-400">
-                Trang chủ
-              </Link>
-              <Link href="/pricing" className="transition hover:text-[#006d45] dark:hover:text-emerald-400">Gói Premium</Link>
+              {publicNavItems.map((item) => (
+                <Link key={item.href} href={item.href} className={publicLinkClass(item.active)}>
+                  {item.label}
+                </Link>
+              ))}
             </nav>
             <div className="hidden items-center gap-4 md:flex">
               <ThemeToggle />
@@ -146,17 +159,37 @@ export function SiteHeader({ authenticated = false }: SiteHeaderProps) {
             </div>
             {authenticated ? (
               <>
-                <Link href="/user/upload" onClick={() => setIsMenuOpen(false)} className="app-button-primary w-full">+ Đăng bài</Link>
-                <Link href="/user" onClick={() => setIsMenuOpen(false)} className="app-button-secondary w-full">Tài liệu</Link>
-                <Link href="/user/upgrade" onClick={() => setIsMenuOpen(false)} className="app-button-secondary w-full">Nâng cấp Premium</Link>
-                <Link href="/profile" onClick={() => setIsMenuOpen(false)} className="app-button-secondary w-full">Hồ sơ cá nhân</Link>
-                <button type="button" onClick={handleLogout} className="app-button-secondary w-full">Đăng xuất</button>
+                <Link href="/user/upload" onClick={() => setIsMenuOpen(false)} className="app-button-primary w-full">
+                  + Đăng bài
+                </Link>
+                <Link href="/user" onClick={() => setIsMenuOpen(false)} className="app-button-secondary w-full">
+                  Tài liệu
+                </Link>
+                <Link href="/user/upgrade" onClick={() => setIsMenuOpen(false)} className="app-button-secondary w-full">
+                  Nâng cấp Premium
+                </Link>
+                <Link href="/profile" onClick={() => setIsMenuOpen(false)} className="app-button-secondary w-full">
+                  Hồ sơ cá nhân
+                </Link>
+                <button type="button" onClick={handleLogout} className="app-button-secondary w-full">
+                  Đăng xuất
+                </button>
               </>
             ) : (
               <>
-                <Link href="/" onClick={() => setIsMenuOpen(false)} className="app-button-secondary w-full">Trang chủ</Link>
-                <Link href="/pricing" onClick={() => setIsMenuOpen(false)} className="app-button-secondary w-full">Gói Premium</Link>
-                <Link href="/login" onClick={() => setIsMenuOpen(false)} className="app-button-primary w-full">Đăng nhập</Link>
+                {publicNavItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsMenuOpen(false)}
+                    className={item.active ? "app-button-primary w-full" : "app-button-secondary w-full"}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+                <Link href="/login" onClick={() => setIsMenuOpen(false)} className="app-button-primary w-full">
+                  Đăng nhập
+                </Link>
               </>
             )}
           </div>

@@ -1,5 +1,8 @@
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+import { UpgradePlans } from "@/components/upgrade-plans";
+
+export const metadata: Metadata = { title: "Gói Premium | HọcLiệu" };
 
 export default function PricingPage() {
-  redirect("/user/upgrade");
+  return <UpgradePlans authenticated={false} />;
 }

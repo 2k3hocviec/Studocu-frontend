@@ -116,7 +116,6 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
             uploadFormData.append("schoolId", formData.schoolId);
             uploadFormData.append("subjectId", formData.subjectId);
             uploadFormData.append("documentType", formData.documentType);
-            uploadFormData.append("isPremium", "false");
 
             const fileType = file.type === "application/pdf" ? "PDF" : file.type.includes("word") ? "DOCX" : "PPTX";
             uploadFormData.append("fileType", fileType);

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 
 const allValue = "ALL";
@@ -15,7 +16,6 @@ type DocumentItem = {
   title: string;
   description: string | null;
   documentType: DocumentType;
-  isPremium: boolean;
   viewCount: number;
   downloadCount: number;
   school: School;
@@ -48,11 +48,22 @@ const documentTypeStyles: Record<DocumentType, string> = {
   OTHER: "bg-slate-100 text-slate-700",
 };
 
-export function UserDocumentBrowser() {
+function isDocumentType(value: string | null): value is DocumentType {
+  return value === "LECTURE" || value === "EXAM" || value === "NOTE" || value === "ASSIGNMENT" || value === "OTHER";
+}
+
+type UserDocumentBrowserProps = {
+  authenticated?: boolean;
+};
+
+export function UserDocumentBrowser({ authenticated = true }: UserDocumentBrowserProps) {
+  const searchParams = useSearchParams();
+  const queryType = searchParams.get("type");
+  const initialType = isDocumentType(queryType) ? queryType : allValue;
   const [title, setTitle] = useState("");
   const [subject, setSubject] = useState(allValue);
   const [school, setSchool] = useState(allValue);
-  const [type, setType] = useState<typeof allValue | DocumentType>(allValue);
+  const [type, setType] = useState<typeof allValue | DocumentType>(initialType);
   const [schools, setSchools] = useState<School[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
@@ -94,6 +105,10 @@ export function UserDocumentBrowser() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    setType(initialType);
+  }, [initialType]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -146,7 +161,7 @@ export function UserDocumentBrowser() {
 
   return (
     <div className="min-h-screen bg-[#f5f8f7] text-slate-900">
-      <SiteHeader authenticated />
+      <SiteHeader authenticated={authenticated} />
 
       <main className="profile-pattern mx-auto min-h-[calc(100vh-4rem)] max-w-6xl px-6 py-8 sm:py-10">
         <section className="rounded-2xl bg-gradient-to-r from-[#56b09c] to-[#70c4b4] px-7 py-8 text-[#12382f] shadow-sm sm:px-9">
@@ -229,7 +244,7 @@ export function UserDocumentBrowser() {
             <Link
               key={document.id}
               href={`/documents/${document.id}`}
-              className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md"
+              className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md"
             >
               <div className="relative h-48 overflow-hidden bg-slate-100">
                 {document.coverImageUrl ? (
@@ -248,18 +263,17 @@ export function UserDocumentBrowser() {
                   <span className={`rounded-lg px-3 py-1 text-xs font-semibold shadow-sm ${documentTypeStyles[document.documentType]}`}>
                     {documentTypeLabels[document.documentType]}
                   </span>
-                  {document.isPremium && <span className="rounded-full bg-[#947109] px-2.5 py-1 text-[11px] font-bold text-white shadow-sm">PRO</span>}
                 </div>
               </div>
-              <article className="p-5">
-                <h2 className="line-clamp-2 text-lg font-semibold text-slate-950 group-hover:text-[#00734b]">{document.title}</h2>
-                <p className="mt-2 min-h-12 line-clamp-2 text-sm leading-6 text-slate-600">{document.description ?? "Không có mô tả."}</p>
+              <article className="flex flex-1 flex-col p-5">
+                <h2 className="min-h-[3.5rem] overflow-hidden break-words text-lg font-semibold text-slate-950 [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] group-hover:text-[#00734b]">{document.title}</h2>
+                <p className="mt-2 min-h-12 overflow-hidden break-words text-sm leading-6 text-slate-600 [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]">{document.description ?? "Không có mô tả."}</p>
                 <div className="mt-5 space-y-2 border-t border-slate-100 pt-4 text-sm text-slate-600">
                   <p><span className="font-semibold text-slate-800">Môn:</span> {document.subject.name}</p>
                   <p><span className="font-semibold text-slate-800">Trường:</span> {document.school.name}</p>
                   {document.totalPages && <p><span className="font-semibold text-slate-800">Số trang:</span> {document.totalPages}</p>}
                 </div>
-                <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4 text-xs text-slate-500">
+                <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-4 text-xs text-slate-500">
                   <span>{document.viewCount} lượt xem · {document.downloadCount} lượt tải</span>
                   <span className="font-semibold text-[#00734b] transition group-hover:text-[#005638]">Đọc tài liệu →</span>
                 </div>

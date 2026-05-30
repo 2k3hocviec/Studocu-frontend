@@ -9,7 +9,6 @@ type DocumentItem = {
   title: string;
   documentType: string;
   status: "PENDING" | "APPROVED" | "REJECTED" | "HIDDEN";
-  isPremium: boolean;
   viewCount: number;
   downloadCount: number;
   createdAt: string;
@@ -325,11 +324,6 @@ export default function AdminDocumentsPage() {
                       <p className="font-semibold text-slate-800 dark:text-slate-200">{doc.title}</p>
                       <div className="mt-1 flex items-center space-x-2">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{doc.documentType}</span>
-                        {doc.isPremium && (
-                          <span className="rounded bg-amber-50 px-1 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-amber-600 dark:bg-amber-950/30 dark:text-amber-400">
-                            Premium
-                          </span>
-                        )}
                       </div>
                     </td>
                     <td className="py-4 px-4">
@@ -587,7 +581,6 @@ function DocumentDetailModal({
                     <DetailRow label="Trường" value={document.school.name} />
                     <DetailRow label="Môn học" value={document.subject.name} />
                     <DetailRow label="Loại" value={document.documentType} />
-                    <DetailRow label="Premium" value={document.isPremium ? "Có" : "Không"} />
                     <DetailRow label="Lượt xem" value={String(document.viewCount)} />
                     <DetailRow label="Lượt tải" value={String(document.downloadCount)} />
                     <DetailRow label="Ngày đăng" value={new Date(document.createdAt).toLocaleDateString("vi-VN")} />

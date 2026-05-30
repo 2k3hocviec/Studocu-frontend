@@ -202,8 +202,7 @@ export function PDFViewer({ fileUrl, totalPages = 0, isPreview = false, onDownlo
             {isPreview && (
                 <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 rounded-lg p-4">
                     <p className="text-sm text-blue-800 dark:text-blue-300">
-                        💡 Đây là bản preview (xem {maxPage} trang). Để xem đầy đủ, vui lòng{" "}
-                        <span className="font-semibold">mở quyền truy cập</span>
+                        Đây là bản preview. Đăng nhập để xem đầy đủ và tải tài liệu.
                     </p>
                 </div>
             )}

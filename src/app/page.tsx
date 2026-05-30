@@ -106,7 +106,7 @@ export default function HomePage() {
             {documentGroups.map((group) => (
               <Link
                 key={group.title}
-                href="/login"
+                href="/documents"
                 className="group rounded-3xl border border-slate-100 bg-white p-7 shadow-[0_1px_3px_rgba(15,23,42,0.03)] transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-[0_10px_28px_rgba(12,49,36,0.08)]"
               >
                 <span className="inline-flex rounded-xl bg-[#dcece5] p-3 text-[#006d45]">
@@ -184,26 +184,26 @@ export default function HomePage() {
             <div>
               <p className="font-semibold text-slate-950">Sản phẩm</p>
               <div className="mt-5 space-y-4 text-sm text-slate-500">
-                <p>Tài liệu miễn phí</p>
-                <p>Đề thi chọn lọc</p>
-                <p>Premium Account</p>
+                <Link href="/documents" className="block transition hover:text-[#006d45]">Tài liệu miễn phí</Link>
+                <Link href="/documents?type=EXAM" className="block transition hover:text-[#006d45]">Đề thi chọn lọc</Link>
+                <Link href="/pricing" className="block transition hover:text-[#006d45]">Premium Account</Link>
               </div>
             </div>
             <div>
               <p className="font-semibold text-slate-950">Công ty</p>
               <div className="mt-5 space-y-4 text-sm text-slate-500">
-                <p>Về chúng tôi</p>
-                <p>Tuyển dụng</p>
-                <p>Blog tri thức</p>
+                <Link href="/about" className="block transition hover:text-[#006d45]">Về chúng tôi</Link>
+                <Link href="/careers" className="block transition hover:text-[#006d45]">Tuyển dụng</Link>
+                <Link href="/blog" className="block transition hover:text-[#006d45]">Blog tri thức</Link>
               </div>
             </div>
             <div>
               <p className="font-semibold text-slate-950">Hỗ trợ</p>
               <div className="mt-5 space-y-4 text-sm text-slate-500">
-                <p>Trợ giúp</p>
-                <p>Liên hệ</p>
-                <p>Bảo mật</p>
-                <p>Điều khoản</p>
+                <Link href="/help" className="block transition hover:text-[#006d45]">Trợ giúp</Link>
+                <Link href="/contact" className="block transition hover:text-[#006d45]">Liên hệ</Link>
+                <Link href="/privacy" className="block transition hover:text-[#006d45]">Bảo mật</Link>
+                <Link href="/terms" className="block transition hover:text-[#006d45]">Điều khoản</Link>
               </div>
             </div>
           </div>
