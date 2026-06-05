@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { SubmitButton } from "./form-controls";
 import { getValidAccessToken } from "@/utils/api";
 
@@ -10,6 +10,17 @@ interface DocumentUploadFormProps {
 }
 
 type DocumentStatus = "idle" | "uploading" | "success" | "error";
+type School = { id: number; name: string };
+type Subject = { id: number; name: string; schoolId: number };
+type PagedResponse<T> = {
+    success: boolean;
+    message?: string;
+    data?: {
+        items: T[];
+    };
+};
+
+const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
 
 export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormProps) {
     const [file, setFile] = useState<File | null>(null);
@@ -18,6 +29,10 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
     const [progress, setProgress] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);
+    const [schools, setSchools] = useState<School[]>([]);
+    const [subjects, setSubjects] = useState<Subject[]>([]);
+    const [isCatalogLoading, setIsCatalogLoading] = useState(true);
+    const onErrorRef = useRef(onError);
 
     const [formData, setFormData] = useState({
         title: "",
@@ -26,6 +41,67 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
         subjectId: "",
         documentType: "LECTURE",
     });
+
+    useEffect(() => {
+        onErrorRef.current = onError;
+    }, [onError]);
+
+    useEffect(() => {
+        let active = true;
+
+        async function loadCatalogs() {
+            setIsCatalogLoading(true);
+            try {
+                const [schoolResponse, subjectResponse] = await Promise.all([
+                    fetch(`${apiUrl}/schools?page=1&limit=100`),
+                    fetch(`${apiUrl}/subjects?page=1&limit=100`),
+                ]);
+                const schoolResult = (await schoolResponse.json()) as PagedResponse<School>;
+                const subjectResult = (await subjectResponse.json()) as PagedResponse<Subject>;
+
+                if (!schoolResponse.ok || !schoolResult.success || !schoolResult.data) {
+                    throw new Error(schoolResult.message ?? "Không thể tải danh sách trường học.");
+                }
+                if (!subjectResponse.ok || !subjectResult.success || !subjectResult.data) {
+                    throw new Error(subjectResult.message ?? "Không thể tải danh sách môn học.");
+                }
+
+                if (active) {
+                    setSchools(schoolResult.data.items);
+                    setSubjects(subjectResult.data.items);
+                }
+            } catch (error) {
+                if (active) {
+                    const message = error instanceof Error ? error.message : "Không thể tải trường học, môn học.";
+                    setErrorMsg(message);
+                    setStatus("error");
+                    onErrorRef.current?.(message);
+                }
+            } finally {
+                if (active) setIsCatalogLoading(false);
+            }
+        }
+
+        void loadCatalogs();
+        return () => {
+            active = false;
+        };
+    }, []);
+
+    const visibleSubjects = useMemo(
+        () => formData.schoolId
+            ? subjects.filter((subject) => subject.schoolId === Number(formData.schoolId))
+            : [],
+        [formData.schoolId, subjects],
+    );
+
+    useEffect(() => {
+        if (!formData.subjectId) return;
+        const subjectBelongsToSchool = visibleSubjects.some((subject) => String(subject.id) === formData.subjectId);
+        if (!subjectBelongsToSchool) {
+            setFormData((current) => ({ ...current, subjectId: "" }));
+        }
+    }, [formData.subjectId, visibleSubjects]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files?.[0]) {
@@ -179,7 +255,7 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
                 onError?.("Lỗi upload");
             });
 
-            xhr.open("POST", `${process.env.NEXT_PUBLIC_API_URL}/documents`);
+            xhr.open("POST", `${apiUrl}/documents`);
             xhr.setRequestHeader("Authorization", `Bearer ${token}`);
             xhr.send(uploadFormData);
         } catch (error) {
@@ -257,12 +333,16 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
                 <div>
                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
                         Trường học *
-                        <select value={formData.schoolId} onChange={(e) => setFormData({ ...formData, schoolId: e.target.value })} className="mt-2 h-12 w-full rounded-lg border border-slate-300 bg-white px-4 font-normal text-slate-900 outline-none transition focus:border-emerald-500 dark:border-white/10 dark:bg-white/5 dark:text-white">
-                            <option value="">Chọn trường</option>
-                            <option value="1">ĐH Bách Khoa</option>
-                            <option value="2">ĐH Kinh Tế</option>
-                            <option value="3">ĐH FPT</option>
-                            <option value="4">ĐH Ngoại Thương</option>
+                        <select
+                            value={formData.schoolId}
+                            disabled={isCatalogLoading || schools.length === 0}
+                            onChange={(e) => setFormData({ ...formData, schoolId: e.target.value, subjectId: "" })}
+                            className="mt-2 h-12 w-full rounded-lg border border-slate-300 bg-white px-4 font-normal text-slate-900 outline-none transition focus:border-emerald-500 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/10"
+                        >
+                            <option value="">{isCatalogLoading ? "Đang tải trường..." : "Chọn trường"}</option>
+                            {schools.map((school) => (
+                                <option key={school.id} value={school.id}>{school.name}</option>
+                            ))}
                         </select>
                     </label>
                 </div>
@@ -270,14 +350,18 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
                 <div>
                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
                         Môn học *
-                        <select value={formData.subjectId} onChange={(e) => setFormData({ ...formData, subjectId: e.target.value })} className="mt-2 h-12 w-full rounded-lg border border-slate-300 bg-white px-4 font-normal text-slate-900 outline-none transition focus:border-emerald-500 dark:border-white/10 dark:bg-white/5 dark:text-white">
-                            <option value="">Chọn môn</option>
-                            <option value="1">Cấu trúc dữ liệu</option>
-                            <option value="2">Cơ sở dữ liệu</option>
-                            <option value="3">Xác suất thống kê</option>
-                            <option value="4">Marketing</option>
-                            <option value="5">Lập trình Web</option>
-                            <option value="6">Tiếng Anh</option>
+                        <select
+                            value={formData.subjectId}
+                            disabled={isCatalogLoading || !formData.schoolId || visibleSubjects.length === 0}
+                            onChange={(e) => setFormData({ ...formData, subjectId: e.target.value })}
+                            className="mt-2 h-12 w-full rounded-lg border border-slate-300 bg-white px-4 font-normal text-slate-900 outline-none transition focus:border-emerald-500 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/10"
+                        >
+                            <option value="">
+                                {isCatalogLoading ? "Đang tải môn..." : formData.schoolId ? "Chọn môn" : "Chọn trường trước"}
+                            </option>
+                            {visibleSubjects.map((subject) => (
+                                <option key={subject.id} value={subject.id}>{subject.name}</option>
+                            ))}
                         </select>
                     </label>
                 </div>
@@ -311,7 +395,7 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
             )}
 
             {/* Submit Button */}
-            <SubmitButton disabled={status === "uploading" || !file} type="submit">
+            <SubmitButton disabled={status === "uploading" || isCatalogLoading || !file} type="submit">
                 {status === "uploading" ? "Đang upload..." : status === "success" ? "✓ Thành công" : "Đăng bài"}
             </SubmitButton>
 

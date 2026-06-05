@@ -1,0 +1,53 @@
+
+> hoclieu-frontend@0.1.0 dev
+> next dev -p 5000
+
+   ▲ Next.js 15.5.18
+   - Local:        http://localhost:5000
+   - Network:      http://172.27.144.1:5000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 2.5s
+ ○ Compiling /admin ...
+ ✓ Compiled /login in 7.6s (661 modules)
+ GET /admin 200 in 8341ms
+ GET /login 200 in 6638ms
+ ✓ Compiled /favicon.ico in 415ms (424 modules)
+ GET /favicon.ico 200 in 653ms
+ ○ Compiling /user ...
+ ✓ Compiled /user in 594ms (672 modules)
+ GET /user 200 in 825ms
+ ○ Compiling /user/upload ...
+ ✓ Compiled /user/upload in 668ms (695 modules)
+ GET /user/upload 200 in 857ms
+ GET /user/upload 200 in 147ms
+ ✓ Compiled in 994ms (669 modules)
+ GET /user/upload 200 in 355ms
+ ✓ Compiled in 637ms (669 modules)
+ GET /user/upload 200 in 247ms
+ ✓ Compiled in 800ms (669 modules)
+ GET /user/upload 200 in 217ms
+ ✓ Compiled in 542ms (669 modules)
+ GET /user/upload 200 in 159ms
+ ✓ Compiled in 443ms (669 modules)
+ GET /user/upload 200 in 101ms
+ ✓ Compiled in 616ms (669 modules)
+ GET /user/upload 200 in 230ms
+ GET /login 200 in 64ms
+ GET /user 200 in 151ms
+ GET /user/upload 200 in 32ms
+ GET /user/upload 200 in 30ms
+ ✓ Compiled in 628ms (669 modules)
+ ✓ Compiled in 337ms (259 modules)
+ GET /user/upload 200 in 316ms
+ GET /user/upload 200 in 45ms
+ GET /user/upload 200 in 325ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 832ms (427 modules)
+ GET /favicon.ico 200 in 1133ms
+ GET /user 200 in 109ms
+ ○ Compiling /documents/[id] ...
+ ✓ Compiled /documents/[id] in 2.7s (770 modules)
+ GET /documents/7 200 in 4291ms
+ GET /documents/7 200 in 76ms

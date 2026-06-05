@@ -418,8 +418,13 @@ export default function AdminDashboardPage() {
             <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">Tài liệu phổ biến nhất</h3>
             <p className="text-xs text-slate-400">Xếp hạng 5 tài liệu được tải nhiều nhất</p>
           </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-[620px] w-full text-left text-sm">
+          <div className="overflow-hidden">
+            <table className="w-full table-fixed text-left text-sm">
+              <colgroup>
+                <col className="w-[52%]" />
+                <col className="w-[28%]" />
+                <col className="w-[20%]" />
+              </colgroup>
               <thead>
                 <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 text-xs font-bold uppercase">
                   <th className="py-3 px-2">Tên tài liệu</th>
@@ -430,10 +435,12 @@ export default function AdminDashboardPage() {
               <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
                 {topCharts.topDocuments.map((doc) => (
                   <tr key={doc.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
-                    <td className="py-3.5 px-2 font-semibold truncate max-w-[200px]" title={doc.title}>
-                      {doc.title}
+                    <td className="py-3.5 px-2 font-semibold" title={doc.title}>
+                      <span className="block truncate">{doc.title}</span>
                     </td>
-                    <td className="py-3.5 px-2 text-slate-500 text-xs font-semibold">{doc.uploader.fullName}</td>
+                    <td className="py-3.5 px-2 text-slate-500 text-xs font-semibold">
+                      <span className="block truncate">{doc.uploader.fullName}</span>
+                    </td>
                     <td className="py-3.5 px-2 text-right font-bold text-emerald-600 dark:text-emerald-400">
                       {doc.downloadCount.toLocaleString()}
                     </td>
@@ -450,8 +457,12 @@ export default function AdminDashboardPage() {
             <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">Trường đại học sôi nổi</h3>
             <p className="text-xs text-slate-400">Xếp hạng 5 trường có nhiều tài liệu học tập nhất</p>
           </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-[520px] w-full text-left text-sm">
+          <div className="overflow-hidden">
+            <table className="w-full table-fixed text-left text-sm">
+              <colgroup>
+                <col className="w-[78%]" />
+                <col className="w-[22%]" />
+              </colgroup>
               <thead>
                 <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 text-xs font-bold uppercase">
                   <th className="py-3 px-2">Tên trường học</th>
@@ -461,7 +472,9 @@ export default function AdminDashboardPage() {
               <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
                 {topCharts.topSchools.map((school) => (
                   <tr key={school.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
-                    <td className="py-3.5 px-2 font-semibold">{school.name}</td>
+                    <td className="py-3.5 px-2 font-semibold">
+                      <span className="block truncate">{school.name}</span>
+                    </td>
                     <td className="py-3.5 px-2 text-right font-bold text-emerald-600 dark:text-emerald-400">
                       {school.documentCount.toLocaleString()}
                     </td>
