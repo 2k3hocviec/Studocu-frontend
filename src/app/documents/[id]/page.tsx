@@ -226,7 +226,7 @@ export default function DocumentPage() {
             </div>
           </div>
 
-          {!document.accessInfo.canViewFull && <PaywallBanner />}
+          {!document.accessInfo.canViewFull && <PaywallBanner authenticated={Boolean(accessToken)} />}
 
           {document.accessInfo.isOwner && (
             <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900/50 dark:bg-blue-950/20">
@@ -300,7 +300,7 @@ export default function DocumentPage() {
   );
 }
 
-function PaywallBanner() {
+function PaywallBanner({ authenticated }: { authenticated: boolean }) {
   return (
     <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-5 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200">
       <p className="font-semibold">Bạn đang xem bản preview.</p>
@@ -308,7 +308,7 @@ function PaywallBanner() {
         Đăng nhập để đọc toàn bộ tài liệu và tải xuống.
       </p>
       <div className="mt-4 flex flex-wrap gap-3">
-        <Link href="/login" className="app-button-primary app-button-compact">Đăng nhập</Link>
+        {!authenticated && <Link href="/login" className="app-button-primary app-button-compact">Đăng nhập</Link>}
         <Link href="/pricing" className="app-button-secondary app-button-compact">Xem Premium</Link>
       </div>
     </div>
