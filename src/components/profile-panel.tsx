@@ -12,6 +12,7 @@ type UserProfile = {
   email: string;
   avatarUrl: string | null;
   role: string;
+  creditBalance: number;
 };
 
 type Subscription = {
@@ -68,8 +69,10 @@ type ProfileDocument = {
   viewedAt?: string;
   coverImageUrl?: string | null;
   totalPages?: number | null;
-  school: { name: string };
-  subject: { name: string };
+  school?: { name: string } | null;
+  subject?: { name: string } | null;
+  requestedSchoolName?: string | null;
+  requestedSubjectName?: string | null;
 };
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
@@ -438,6 +441,10 @@ export function ProfilePanel() {
             {profile?.fullName || (isLoading ? "Đang tải..." : "Thông tin tài khoản")}
           </p>
           <p className="mt-1 break-all text-sm leading-5 text-slate-500 dark:text-slate-400">{profile?.email ?? "Thành viên HọcLiệu"}</p>
+          <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">
+            <span className="grid h-5 w-5 place-content-center rounded-full bg-emerald-100 text-xs dark:bg-emerald-900/70">C</span>
+            <span>{formatMoney(profile?.creditBalance ?? 0)} credit còn lại</span>
+          </div>
           <div className="mt-7 grid gap-3 text-left">
             <div className="grid gap-2">
               <LibraryToggleButton
@@ -854,6 +861,9 @@ function DocumentLibraryPanel({
 }
 
 function ProfileDocumentCard({ document, showStatus }: { document: ProfileDocument; showStatus: boolean }) {
+  const schoolName = document.school?.name ?? document.requestedSchoolName ?? "Chưa có trường";
+  const subjectName = document.subject?.name ?? document.requestedSubjectName ?? "Chưa có môn học";
+
   return (
     <Link
       href={`/documents/${document.id}`}
@@ -876,7 +886,7 @@ function ProfileDocumentCard({ document, showStatus }: { document: ProfileDocume
           {document.viewedAt ? <span>Xem {formatDate(document.viewedAt)}</span> : null}
         </span>
         <span className="mt-1 block overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-slate-400">
-          {document.subject.name} · {document.school.name}
+          {subjectName} · {schoolName}
         </span>
       </span>
     </Link>

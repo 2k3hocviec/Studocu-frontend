@@ -17,12 +17,14 @@ interface Document {
     fullName: string;
     avatarUrl?: string;
   };
-  school: {
+  school?: {
     name: string;
-  };
-  subject: {
+  } | null;
+  subject?: {
     name: string;
-  };
+  } | null;
+  requestedSchoolName?: string | null;
+  requestedSubjectName?: string | null;
   viewCount: number;
   downloadCount: number;
   createdAt: string;
@@ -254,8 +256,8 @@ export default function DocumentPage() {
                 />
                 <span>{document.uploader.fullName}</span>
               </div>
-              <div>📚 {document.school.name}</div>
-              <div>📖 {document.subject.name}</div>
+              <div>📚 {document.school?.name ?? document.requestedSchoolName ?? "Chưa có trường"}</div>
+              <div>📖 {document.subject?.name ?? document.requestedSubjectName ?? "Chưa có môn học"}</div>
               <div>👁️ {document.viewCount} lượt xem</div>
               <div>⬇️ {document.downloadCount} lượt tải</div>
               <ReactionControls
@@ -292,7 +294,17 @@ export default function DocumentPage() {
             </div>
           )}
 
-          {document.previews.length > 0 ? (
+          {document.accessInfo.canViewFull && document.documentFile ? (
+            <DocumentViewer
+              fileUrl={`${apiUrl}/documents/${documentId}/file`}
+              fileType={document.documentFile.fileType}
+              totalPages={document.documentFile.totalPages}
+              isPreview={false}
+              authToken={accessToken}
+              downloadFileName={document.title}
+              onDownload={handleDownload}
+            />
+          ) : document.previews.length > 0 ? (
             <div className="space-y-5">
               {document.accessInfo.canViewFull && document.documentFile && (
                 <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-white/5">
@@ -326,16 +338,6 @@ export default function DocumentPage() {
                 </div>
               )}
             </div>
-          ) : document.accessInfo.canViewFull && document.documentFile ? (
-            <DocumentViewer
-              fileUrl={`${apiUrl}/documents/${documentId}/file`}
-              fileType={document.documentFile.fileType}
-              totalPages={document.documentFile.totalPages}
-              isPreview={!document.accessInfo.canViewFull}
-              authToken={accessToken}
-              downloadFileName={document.title}
-              onDownload={handleDownload}
-            />
           ) : (
             <div className="rounded-lg border border-amber-200 bg-amber-50 p-6 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200">
               <p className="font-semibold">Tài liệu này chưa có bản preview.</p>

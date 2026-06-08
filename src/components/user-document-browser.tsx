@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
@@ -61,9 +61,15 @@ export function UserDocumentBrowser({ authenticated = true }: UserDocumentBrowse
   const queryType = searchParams.get("type");
   const initialType = isDocumentType(queryType) ? queryType : allValue;
   const [title, setTitle] = useState("");
-  const [subject, setSubject] = useState(allValue);
-  const [school, setSchool] = useState(allValue);
+  const [subject, setSubject] = useState("");
+  const [school, setSchool] = useState("");
   const [type, setType] = useState<typeof allValue | DocumentType>(initialType);
+  const [appliedFilters, setAppliedFilters] = useState({
+    title: "",
+    subject: "",
+    school: "",
+    type: initialType,
+  });
   const [schools, setSchools] = useState<School[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
@@ -108,18 +114,19 @@ export function UserDocumentBrowser({ authenticated = true }: UserDocumentBrowse
 
   useEffect(() => {
     setType(initialType);
+    setAppliedFilters((current) => ({ ...current, type: initialType }));
   }, [initialType]);
 
   useEffect(() => {
     const controller = new AbortController();
-    const timer = window.setTimeout(async () => {
+    async function loadDocuments() {
       setIsLoading(true);
       setError("");
       const query = new URLSearchParams({ page: "1", limit: "30" });
-      if (title.trim()) query.set("search", title.trim());
-      if (school !== allValue) query.set("schoolId", school);
-      if (subject !== allValue) query.set("subjectId", subject);
-      if (type !== allValue) query.set("type", type);
+      if (appliedFilters.title.trim()) query.set("search", appliedFilters.title.trim());
+      if (appliedFilters.school.trim()) query.set("schoolName", appliedFilters.school.trim());
+      if (appliedFilters.subject.trim()) query.set("subjectName", appliedFilters.subject.trim());
+      if (appliedFilters.type !== allValue) query.set("type", appliedFilters.type);
 
       try {
         const response = await fetch(`${apiUrl}/documents?${query}`, {
@@ -139,25 +146,45 @@ export function UserDocumentBrowser({ authenticated = true }: UserDocumentBrowse
       } finally {
         if (!controller.signal.aborted) setIsLoading(false);
       }
-    }, 250);
+    }
+
+    void loadDocuments();
 
     return () => {
-      window.clearTimeout(timer);
       controller.abort();
     };
-  }, [school, subject, title, type]);
+  }, [appliedFilters]);
 
-  const visibleSubjects =
-    school === allValue
-      ? subjects
-      : subjects.filter((item) => item.schoolId === Number(school));
+  const selectedSchool = useMemo(
+    () => schools.find((item) => item.name.trim().toLocaleLowerCase("vi-VN") === school.trim().toLocaleLowerCase("vi-VN")),
+    [school, schools],
+  );
+  const visibleSubjects = useMemo(
+    () => selectedSchool ? subjects.filter((item) => item.schoolId === selectedSchool.id) : subjects,
+    [selectedSchool, subjects],
+  );
 
   function clearFilters() {
     setTitle("");
-    setSubject(allValue);
-    setSchool(allValue);
+    setSubject("");
+    setSchool("");
     setType(allValue);
+    setAppliedFilters({ title: "", subject: "", school: "", type: allValue });
   }
+
+  function applyFilters() {
+    setAppliedFilters({
+      title,
+      subject,
+      school,
+      type,
+    });
+  }
+
+  const hasPendingFilterChanges = title !== appliedFilters.title
+    || subject !== appliedFilters.subject
+    || school !== appliedFilters.school
+    || type !== appliedFilters.type;
 
   return (
     <div className="min-h-screen bg-[#f5f8f7] text-slate-900">
@@ -172,7 +199,13 @@ export function UserDocumentBrowser({ authenticated = true }: UserDocumentBrowse
           </p>
         </section>
 
-        <section className="mt-7 rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_7px_18px_rgba(15,23,42,0.09)] sm:p-7">
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            applyFilters();
+          }}
+          className="mt-7 rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_7px_18px_rgba(15,23,42,0.09)] sm:p-7"
+        >
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <label className="text-sm font-semibold text-slate-800">
               Tên tài liệu
@@ -189,15 +222,23 @@ export function UserDocumentBrowser({ authenticated = true }: UserDocumentBrowse
                 </svg>
               </span>
             </label>
-            <FilterSelect label="Môn học" value={subject} onChange={setSubject} options={visibleSubjects} />
-            <FilterSelect
+            <FilterSearch
+              label="Môn học"
+              value={subject}
+              onChange={setSubject}
+              options={visibleSubjects}
+              placeholder="Nhập tên môn học..."
+              listId="document-subject-filter-options"
+            />
+            <FilterSearch
               label="Trường học"
               value={school}
               onChange={(value) => {
                 setSchool(value);
-                setSubject(allValue);
               }}
               options={schools}
+              placeholder="Nhập tên trường học..."
+              listId="document-school-filter-options"
             />
             <label className="text-sm font-semibold text-slate-800">
               Loại tài liệu
@@ -223,11 +264,21 @@ export function UserDocumentBrowser({ authenticated = true }: UserDocumentBrowse
               </svg>
               Tìm thấy <span className="font-bold">{total}</span> tài liệu
             </p>
-            <button onClick={clearFilters} className="app-button-primary">
-              Xóa bộ lọc
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button type="submit" className="app-button-primary">
+                Tìm kiếm
+              </button>
+              <button type="button" onClick={clearFilters} className="app-button-primary">
+                Xóa bộ lọc
+              </button>
+            </div>
           </div>
-        </section>
+          {hasPendingFilterChanges ? (
+            <p className="mt-3 text-xs font-medium text-amber-700">
+              Bộ lọc đã thay đổi. Nhấn Tìm kiếm để cập nhật kết quả.
+            </p>
+          ) : null}
+        </form>
 
         {error && (
           <p className="mt-6 rounded-xl bg-rose-50 px-5 py-4 text-sm text-rose-700">
@@ -292,27 +343,31 @@ export function UserDocumentBrowser({ authenticated = true }: UserDocumentBrowse
   );
 }
 
-type FilterSelectProps = {
+type FilterSearchProps = {
   label: string;
   value: string;
   options: Array<{ id: number; name: string }>;
+  placeholder: string;
+  listId: string;
   onChange: (value: string) => void;
 };
 
-function FilterSelect({ label, value, options, onChange }: FilterSelectProps) {
+function FilterSearch({ label, value, options, placeholder, listId, onChange }: FilterSearchProps) {
   return (
     <label className="text-sm font-semibold text-slate-800">
       {label}
-      <select
+      <input
+        list={listId}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="mt-2 h-12 w-full rounded-lg border border-slate-200 bg-white px-4 font-normal outline-none transition focus:border-emerald-600"
-      >
-        <option value={allValue}>Tất cả</option>
+        placeholder={placeholder}
+        className="mt-2 h-12 w-full rounded-lg border border-slate-200 bg-white px-4 font-normal outline-none transition placeholder:text-slate-400 focus:border-emerald-600"
+      />
+      <datalist id={listId}>
         {options.map((option) => (
-          <option key={option.id} value={option.id}>{option.name}</option>
+          <option key={option.id} value={option.name} />
         ))}
-      </select>
+      </datalist>
     </label>
   );
 }

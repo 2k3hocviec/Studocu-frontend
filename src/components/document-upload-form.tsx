@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { SubmitButton } from "./form-controls";
 import { getValidAccessToken } from "@/utils/api";
 
@@ -10,6 +10,12 @@ interface DocumentUploadFormProps {
 }
 
 type DocumentStatus = "idle" | "uploading" | "success" | "error";
+type SchoolOption = { id: number; name: string };
+type SubjectOption = { id: number; name: string; schoolId: number };
+
+function sameName(left: string, right: string) {
+    return left.trim().toLocaleLowerCase("vi-VN") === right.trim().toLocaleLowerCase("vi-VN");
+}
 
 export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormProps) {
     const [file, setFile] = useState<File | null>(null);
@@ -18,14 +24,63 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
     const [progress, setProgress] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);
+    const [schools, setSchools] = useState<SchoolOption[]>([]);
+    const [subjects, setSubjects] = useState<SubjectOption[]>([]);
 
     const [formData, setFormData] = useState({
         title: "",
         description: "",
-        schoolId: "",
-        subjectId: "",
+        schoolName: "",
+        subjectName: "",
         documentType: "LECTURE",
     });
+
+    const selectedSchool = useMemo(
+        () => schools.find((school) => sameName(school.name, formData.schoolName)),
+        [formData.schoolName, schools],
+    );
+    const visibleSubjects = useMemo(
+        () => selectedSchool ? subjects.filter((subject) => subject.schoolId === selectedSchool.id) : subjects,
+        [selectedSchool, subjects],
+    );
+    const selectedSubject = useMemo(
+        () => visibleSubjects.find((subject) => sameName(subject.name, formData.subjectName)),
+        [formData.subjectName, visibleSubjects],
+    );
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function fetchTaxonomy() {
+            try {
+                const [schoolsResponse, subjectsResponse] = await Promise.all([
+                    fetch(`${process.env.NEXT_PUBLIC_API_URL}/schools?limit=100`),
+                    fetch(`${process.env.NEXT_PUBLIC_API_URL}/subjects?limit=100`),
+                ]);
+                const [schoolsResult, subjectsResult] = await Promise.all([
+                    schoolsResponse.json().catch(() => null),
+                    subjectsResponse.json().catch(() => null),
+                ]);
+                if (cancelled) return;
+                if (schoolsResponse.ok && schoolsResult?.success) {
+                    setSchools(schoolsResult.data.items ?? []);
+                }
+                if (subjectsResponse.ok && subjectsResult?.success) {
+                    setSubjects(subjectsResult.data.items ?? []);
+                }
+            } catch {
+                if (!cancelled) {
+                    setSchools([]);
+                    setSubjects([]);
+                }
+            }
+        }
+
+        void fetchTaxonomy();
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files?.[0]) {
@@ -93,14 +148,14 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
             return;
         }
 
-        if (!formData.schoolId) {
-            setErrorMsg("Vui lòng chọn trường học.");
+        if (!formData.schoolName.trim()) {
+            setErrorMsg("Vui lòng chọn hoặc nhập trường học.");
             setStatus("error");
             return;
         }
 
-        if (!formData.subjectId) {
-            setErrorMsg("Vui lòng chọn môn học.");
+        if (!formData.subjectName.trim()) {
+            setErrorMsg("Vui lòng chọn hoặc nhập môn học.");
             setStatus("error");
             return;
         }
@@ -113,8 +168,16 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
             uploadFormData.append("file", file);
             uploadFormData.append("title", formData.title);
             uploadFormData.append("description", formData.description || "");
-            uploadFormData.append("schoolId", formData.schoolId);
-            uploadFormData.append("subjectId", formData.subjectId);
+            if (selectedSchool) {
+                uploadFormData.append("schoolId", String(selectedSchool.id));
+            } else {
+                uploadFormData.append("requestedSchoolName", formData.schoolName.trim());
+            }
+            if (selectedSubject) {
+                uploadFormData.append("subjectId", String(selectedSubject.id));
+            } else {
+                uploadFormData.append("requestedSubjectName", formData.subjectName.trim());
+            }
             uploadFormData.append("documentType", formData.documentType);
 
             const fileType = file.type === "application/pdf" ? "PDF" : file.type.includes("word") ? "DOCX" : "PPTX";
@@ -145,8 +208,8 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
                         setFormData({
                             title: "",
                             description: "",
-                            schoolId: "",
-                            subjectId: "",
+                            schoolName: "",
+                            subjectName: "",
                             documentType: "LECTURE",
                         });
                         onSuccess?.();
@@ -257,28 +320,36 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
                 <div>
                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
                         Trường học *
-                        <select value={formData.schoolId} onChange={(e) => setFormData({ ...formData, schoolId: e.target.value })} className="mt-2 h-12 w-full rounded-lg border border-slate-300 bg-white px-4 font-normal text-slate-900 outline-none transition focus:border-emerald-500 dark:border-white/10 dark:bg-white/5 dark:text-white">
-                            <option value="">Chọn trường</option>
-                            <option value="1">ĐH Bách Khoa</option>
-                            <option value="2">ĐH Kinh Tế</option>
-                            <option value="3">ĐH FPT</option>
-                            <option value="4">ĐH Ngoại Thương</option>
-                        </select>
+                        <input
+                            list="school-options"
+                            value={formData.schoolName}
+                            onChange={(e) => setFormData({ ...formData, schoolName: e.target.value })}
+                            placeholder="Chọn hoặc nhập trường"
+                            className="mt-2 h-12 w-full rounded-lg border border-slate-300 bg-white px-4 font-normal text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                        />
+                        <datalist id="school-options">
+                            {schools.map((school) => (
+                                <option key={school.id} value={school.name} />
+                            ))}
+                        </datalist>
                     </label>
                 </div>
 
                 <div>
                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
                         Môn học *
-                        <select value={formData.subjectId} onChange={(e) => setFormData({ ...formData, subjectId: e.target.value })} className="mt-2 h-12 w-full rounded-lg border border-slate-300 bg-white px-4 font-normal text-slate-900 outline-none transition focus:border-emerald-500 dark:border-white/10 dark:bg-white/5 dark:text-white">
-                            <option value="">Chọn môn</option>
-                            <option value="1">Cấu trúc dữ liệu</option>
-                            <option value="2">Cơ sở dữ liệu</option>
-                            <option value="3">Xác suất thống kê</option>
-                            <option value="4">Marketing</option>
-                            <option value="5">Lập trình Web</option>
-                            <option value="6">Tiếng Anh</option>
-                        </select>
+                        <input
+                            list="subject-options"
+                            value={formData.subjectName}
+                            onChange={(e) => setFormData({ ...formData, subjectName: e.target.value })}
+                            placeholder="Chọn hoặc nhập môn"
+                            className="mt-2 h-12 w-full rounded-lg border border-slate-300 bg-white px-4 font-normal text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                        />
+                        <datalist id="subject-options">
+                            {visibleSubjects.map((subject) => (
+                                <option key={subject.id} value={subject.name} />
+                            ))}
+                        </datalist>
                     </label>
                 </div>
             </div>

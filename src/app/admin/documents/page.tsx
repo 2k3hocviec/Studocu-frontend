@@ -14,15 +14,17 @@ type DocumentItem = {
   createdAt: string;
   rejectReason?: string | null;
   uploader: { fullName: string };
-  school: { name: string };
-  subject: { name: string };
+  school?: { name: string } | null;
+  subject?: { name: string } | null;
+  requestedSchoolName?: string | null;
+  requestedSubjectName?: string | null;
 };
 
 type DocumentDetail = DocumentItem & {
   description?: string | null;
   uploader: { id?: number; fullName: string; avatarUrl?: string | null };
-  school: { id?: number; name: string };
-  subject: { id?: number; name: string };
+  school?: { id?: number; name: string } | null;
+  subject?: { id?: number; name: string } | null;
   documentFile?: {
     fileType: "PDF" | "DOCX" | "PPTX";
     totalPages?: number | null;
@@ -45,6 +47,14 @@ type APIResponse = {
 };
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
+
+function schoolName(document: Pick<DocumentItem, "school" | "requestedSchoolName">) {
+  return document.school?.name ?? document.requestedSchoolName ?? "Chưa có trường";
+}
+
+function subjectName(document: Pick<DocumentItem, "subject" | "requestedSubjectName">) {
+  return document.subject?.name ?? document.requestedSubjectName ?? "Chưa có môn học";
+}
 
 export default function AdminDocumentsPage() {
   const [loading, setLoading] = useState(true);
@@ -327,8 +337,8 @@ export default function AdminDocumentsPage() {
                       </div>
                     </td>
                     <td className="py-4 px-4">
-                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{doc.school.name}</p>
-                      <p className="text-[11px] font-bold text-slate-400 mt-0.5">{doc.subject.name}</p>
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{schoolName(doc)}</p>
+                      <p className="text-[11px] font-bold text-slate-400 mt-0.5">{subjectName(doc)}</p>
                     </td>
                     <td className="py-4 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
                       <p>{doc.uploader.fullName}</p>
@@ -578,8 +588,8 @@ function DocumentDetailModal({
                 <div className="rounded-xl border border-slate-200 p-4 text-sm dark:border-slate-800">
                   <dl className="space-y-3">
                     <DetailRow label="Người đăng" value={document.uploader.fullName} />
-                    <DetailRow label="Trường" value={document.school.name} />
-                    <DetailRow label="Môn học" value={document.subject.name} />
+                    <DetailRow label="Trường" value={schoolName(document)} />
+                    <DetailRow label="Môn học" value={subjectName(document)} />
                     <DetailRow label="Loại" value={document.documentType} />
                     <DetailRow label="Lượt xem" value={String(document.viewCount)} />
                     <DetailRow label="Lượt tải" value={String(document.downloadCount)} />
@@ -596,7 +606,33 @@ function DocumentDetailModal({
               </section>
 
               <section className="min-w-0 rounded-xl border border-slate-200 bg-slate-100 p-4 dark:border-slate-800 dark:bg-slate-950">
-                {document.previews.length > 0 ? (
+                {document.documentFile ? (
+                  <DocumentViewer
+                    fileUrl={`${apiUrl}/documents/${document.id}/file`}
+                    fileType={document.documentFile.fileType}
+                    totalPages={document.documentFile.totalPages ?? undefined}
+                    isPreview={false}
+                    authToken={accessToken}
+                    downloadFileName={document.title}
+                    fallback={document.previews.length > 0 ? (
+                      <div className="space-y-4">
+                        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200">
+                          Không thể tải file gốc. Đang hiển thị bản preview để admin vẫn có thể kiểm tra tạm thời.
+                        </div>
+                        <div className="max-h-[calc(100vh-260px)] space-y-5 overflow-y-auto pr-1">
+                          {document.previews.map((preview) => (
+                            <img
+                              key={preview.id}
+                              src={preview.imageUrl}
+                              alt={`Trang ${preview.pageNumber} của ${document.title}`}
+                              className={`mx-auto h-auto w-full max-w-[820px] rounded-sm border border-slate-300 bg-white shadow-sm dark:border-slate-700 ${preview.isBlurred ? "blur-sm" : ""}`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ) : undefined}
+                  />
+                ) : document.previews.length > 0 ? (
                   <div className="max-h-[calc(100vh-220px)] space-y-5 overflow-y-auto pr-1">
                     {document.previews.map((preview) => (
                       <img
@@ -607,14 +643,6 @@ function DocumentDetailModal({
                       />
                     ))}
                   </div>
-                ) : document.documentFile ? (
-                  <DocumentViewer
-                    fileUrl={`${apiUrl}/documents/${document.id}/file`}
-                    fileType={document.documentFile.fileType}
-                    totalPages={document.documentFile.totalPages ?? undefined}
-                    authToken={accessToken}
-                    downloadFileName={document.title}
-                  />
                 ) : (
                   <div className="rounded-lg border border-amber-200 bg-amber-50 p-6 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200">
                     <p className="font-semibold">Tài liệu này chưa có preview hoặc file gốc.</p>

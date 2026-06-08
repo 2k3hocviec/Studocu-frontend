@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { DOCXViewer } from "@/components/docx-viewer";
 import { PDFPageViewer } from "@/components/pdf-page-viewer";
@@ -12,14 +13,19 @@ interface DocumentViewerProps {
     authToken?: string | null;
     downloadFileName?: string;
     onDownload?: () => void;
+    fallback?: ReactNode;
 }
 
-export function DocumentViewer({ fileUrl, fileType, totalPages, isPreview = false, authToken, downloadFileName, onDownload }: DocumentViewerProps) {
+export function DocumentViewer({ fileUrl, fileType, totalPages, isPreview = false, authToken, downloadFileName, onDownload, fallback }: DocumentViewerProps) {
     const { objectUrl, isLoading, error } = useProtectedFile(fileUrl, authToken, !isPreview);
     const viewerUrl = isPreview ? fileUrl : objectUrl;
 
     if (!isPreview && isLoading) {
         return <ViewerMessage tone="neutral" title="Đang mở tài liệu..." description="Hệ thống đang tải file qua endpoint nội bộ." />;
+    }
+
+    if (!isPreview && error && fallback) {
+        return <>{fallback}</>;
     }
 
     if (!isPreview && error) {

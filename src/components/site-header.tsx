@@ -23,56 +23,144 @@ type Subscription = {
 } | null;
 
 function DigitalLibraryLogo() {
-  return (
-    <span className="flex items-center gap-2.5" aria-label="Kho tài liệu số">
-      <span className="relative grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-white/10">
-        <svg viewBox="0 0 120 120" className="h-11 w-11" fill="none" aria-hidden="true">
-          <path
-            d="M92 25a45 45 0 0 1 11 22M102 71a45 45 0 0 1-29 30M47 102a45 45 0 0 1-29-28M18 47a45 45 0 0 1 29-29M62 17a45 45 0 0 1 23 6"
-            className="stroke-sky-700 dark:stroke-sky-300"
-            strokeWidth="7"
-            strokeLinecap="round"
-          />
-          <path
-            d="M25 76c14-8 29-8 42 0 11-8 24-9 37-3v11c-13-5-26-4-37 3-13-8-28-8-42 0V76Z"
-            className="fill-emerald-700 dark:fill-emerald-300"
-          />
-          <path
-            d="M34 46v29M55 40v35M82 46v29M96 46v29"
-            className="stroke-teal-700 dark:stroke-teal-300"
-            strokeWidth="9"
-            strokeLinecap="square"
-          />
-          <path
-            d="M42 66 56 75 78 58 93 29"
-            className="stroke-teal-800 dark:stroke-teal-200"
-            strokeWidth="9"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M63 58c-2-15 8-26 24-25 5 8 4 17-2 25"
-            className="stroke-teal-800 dark:stroke-teal-200"
-            strokeWidth="7"
-            strokeLinecap="round"
-          />
-          <path
-            d="M87 33c6-10 14-15 24-15-1 13-5 21-14 27 8-1 15 1 21 5-8 8-18 10-30 6"
-            className="stroke-teal-800 dark:stroke-teal-200"
-            strokeWidth="6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </span>
-      <span className="hidden leading-none sm:block">
-        <span className="block text-[15px] font-black tracking-[0.16em] text-slate-800 dark:text-slate-100">
-          KHO TÀI LIỆU SỐ
+  function HKHLogo() {
+    return (
+      <span className="flex items-center gap-3" aria-label="HKH Kho Tài Liệu Số">
+
+        {/* ── Icon sách + lá cây ── */}
+        <span className="relative shrink-0">
+          <svg
+            viewBox="0 0 118 130"
+            className="h-10 w-10"
+            fill="none"
+            aria-hidden="true"
+          >
+            <defs>
+              <linearGradient id="hkh-spine" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#0ea5e9" />
+                <stop offset="100%" stopColor="#0369a1" />
+              </linearGradient>
+              <linearGradient id="hkh-spine-dark" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#38bdf8" />
+                <stop offset="100%" stopColor="#0ea5e9" />
+              </linearGradient>
+              <linearGradient id="hkh-cover" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#e0f2fe" />
+                <stop offset="100%" stopColor="#bae6fd" />
+              </linearGradient>
+              <linearGradient id="hkh-cover-dark" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#1e3a5f" />
+                <stop offset="100%" stopColor="#164e63" />
+              </linearGradient>
+              <linearGradient id="hkh-page" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#f8fafc" />
+                <stop offset="100%" stopColor="#f1f5f9" />
+              </linearGradient>
+              <linearGradient id="hkh-leaf" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#4ade80" />
+                <stop offset="100%" stopColor="#16a34a" />
+              </linearGradient>
+              <linearGradient id="hkh-leaf-dark" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#4ade80" />
+                <stop offset="100%" stopColor="#15803d" />
+              </linearGradient>
+            </defs>
+
+            {/* Gáy sách */}
+            <rect
+              x="4" y="8" width="9" height="86" rx="2"
+              className="fill-[url(#hkh-spine)] dark:fill-[url(#hkh-spine-dark)]"
+            />
+
+            {/* Bìa sách */}
+            <rect
+              x="13" y="2" width="74" height="92" rx="4"
+              className="fill-[url(#hkh-cover)] stroke-sky-300 dark:fill-[url(#hkh-cover-dark)] dark:stroke-sky-400"
+              strokeWidth="0.8"
+            />
+
+            {/* Trang sách */}
+            <rect
+              x="15" y="4" width="68" height="88" rx="3"
+              className="fill-[url(#hkh-page)] dark:fill-slate-900"
+            />
+
+            {/* Dòng kẻ trang */}
+            <rect x="20" y="14" width="42" height="2.5" rx="1.2" className="fill-slate-300 dark:fill-slate-600" />
+            <rect x="20" y="21" width="52" height="2.5" rx="1.2" className="fill-slate-200 dark:fill-slate-700" />
+            <rect x="20" y="28" width="38" height="2.5" rx="1.2" className="fill-slate-200 dark:fill-slate-700" />
+            <rect x="20" y="35" width="48" height="2.5" rx="1.2" className="fill-slate-200 dark:fill-slate-700" />
+            <rect x="20" y="42" width="34" height="2.5" rx="1.2" className="fill-slate-200 dark:fill-slate-700" />
+            <rect x="20" y="49" width="44" height="2.5" rx="1.2" className="fill-slate-200 dark:fill-slate-700" />
+
+            {/* Thanh màu dưới bìa */}
+            <rect x="13" y="90" width="74" height="8" rx="2" className="fill-sky-700 dark:fill-sky-500" />
+
+            {/* Lá cây */}
+            <path
+              d="M68 76 Q80 42 102 30 Q100 54 85 68 Q97 64 106 57 Q104 78 80 84 Q73 86 68 76Z"
+              className="fill-[url(#hkh-leaf)] dark:fill-[url(#hkh-leaf-dark)]"
+              opacity="0.93"
+            />
+            {/* Gân lá chính */}
+            <path
+              d="M68 76 Q84 58 102 30"
+              className="stroke-green-700 dark:stroke-green-400"
+              strokeWidth="1.2" fill="none" strokeLinecap="round"
+            />
+            {/* Gân lá phụ */}
+            <path
+              d="M76 72 Q86 57 97 40"
+              className="stroke-green-300 dark:stroke-green-200"
+              strokeWidth="0.7" fill="none" strokeLinecap="round" opacity="0.65"
+            />
+
+            {/* Chữ HKH */}
+            <text
+              x="50" y="118"
+              textAnchor="middle"
+              fontFamily="Georgia, serif"
+              fontSize="19"
+              fontWeight="700"
+              letterSpacing="5"
+              className="fill-sky-700 dark:fill-sky-300"
+            />
+            <text
+              x="50" y="118"
+              textAnchor="middle"
+              fontFamily="Georgia, serif"
+              fontSize="19"
+              fontWeight="700"
+              letterSpacing="5"
+              fill="currentColor"
+              className="text-sky-700 dark:text-sky-300"
+            >HKH</text>
+
+            {/* Gạch dưới HKH */}
+            <line
+              x1="15" y1="122" x2="85" y2="122"
+              className="stroke-sky-500 dark:stroke-sky-400"
+              strokeWidth="1.5" strokeLinecap="round"
+            />
+          </svg>
         </span>
-        <span className="mt-1 block h-0.5 w-full rounded-full bg-gradient-to-r from-sky-700 via-teal-600 to-emerald-600 dark:from-sky-300 dark:via-teal-300 dark:to-emerald-300" />
+
+        {/* ── Đường kẻ dọc phân cách ── */}
+        <span className="hidden h-9 w-px shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 sm:block" />
+
+        {/* ── Tên thương hiệu ── */}
+        <span className="hidden flex-col gap-1 sm:flex">
+          <span className="block text-[12px] font-black tracking-[0.14em] text-slate-800 dark:text-slate-100">
+            KHO TÀI LIỆU SỐ
+          </span>
+          <span className="block h-0.5 w-full rounded-full bg-gradient-to-r from-sky-500 via-teal-500 to-emerald-500 dark:from-sky-400 dark:via-teal-400 dark:to-emerald-400" />
+        </span>
+
       </span>
-    </span>
-  );
+    );
+  }
+
+  return <HKHLogo />;
 }
 
 export function SiteHeader({ authenticated = false }: SiteHeaderProps) {
