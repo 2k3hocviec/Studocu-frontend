@@ -37,6 +37,11 @@ interface Document {
   accessInfo: {
     canViewFull: boolean;
     isOwner: boolean;
+    hasPremium: boolean;
+    hasCreditAccess: boolean;
+    creditBalance: number | null;
+    creditCost: number;
+    canUnlockWithCredits: boolean;
   };
   reactionInfo: {
     likeCount: number;
@@ -44,6 +49,12 @@ interface Document {
     myReaction: "LIKE" | "DISLIKE" | null;
   };
 }
+
+type UnlockCreditResponse = {
+  document?: Document;
+  creditBalance?: number;
+  charged?: boolean;
+};
 
 export default function DocumentPage() {
   const router = useRouter();
@@ -55,6 +66,7 @@ export default function DocumentPage() {
   const [error, setError] = useState<string | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [showReportDialog, setShowReportDialog] = useState(false);
+  const [isUnlockingCredit, setIsUnlockingCredit] = useState(false);
 
   useEffect(() => {
     const fetchDocument = async () => {
@@ -81,6 +93,43 @@ export default function DocumentPage() {
 
     void fetchDocument();
   }, [apiUrl, documentId]);
+
+  const handleUnlockWithCredit = async () => {
+    const token = localStorage.getItem("accessToken");
+    setAccessToken(token);
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    const cost = document?.accessInfo.creditCost ?? 1;
+    const confirmed = window.confirm(`Bạn có muốn dùng ${cost} credit để xem toàn bộ tài liệu không?`);
+    if (!confirmed) return;
+
+    setIsUnlockingCredit(true);
+    try {
+      const response = await fetch(`${apiUrl}/documents/${documentId}/unlock-credit`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        alert(errorData.message || "Không thể dùng credit để mở tài liệu.");
+        return;
+      }
+      const result = (await response.json()) as { data?: UnlockCreditResponse };
+      if (result.data?.document) {
+        setDocument(result.data.document);
+      } else {
+        window.location.reload();
+      }
+    } catch (err) {
+      console.error("Credit unlock error:", err);
+      alert("Không thể dùng credit để mở tài liệu. Vui lòng thử lại.");
+    } finally {
+      setIsUnlockingCredit(false);
+    }
+  };
 
   const handleDownload = async () => {
     const token = localStorage.getItem("accessToken");
@@ -226,7 +275,14 @@ export default function DocumentPage() {
             </div>
           </div>
 
-          {!document.accessInfo.canViewFull && <PaywallBanner authenticated={Boolean(accessToken)} />}
+          {!document.accessInfo.canViewFull && (
+            <PaywallBanner
+              authenticated={Boolean(accessToken)}
+              accessInfo={document.accessInfo}
+              isUnlockingCredit={isUnlockingCredit}
+              onUnlockWithCredit={() => void handleUnlockWithCredit()}
+            />
+          )}
 
           {document.accessInfo.isOwner && (
             <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900/50 dark:bg-blue-950/20">
@@ -300,15 +356,40 @@ export default function DocumentPage() {
   );
 }
 
-function PaywallBanner({ authenticated }: { authenticated: boolean }) {
+function PaywallBanner({
+  authenticated,
+  accessInfo,
+  isUnlockingCredit,
+  onUnlockWithCredit,
+}: {
+  authenticated: boolean;
+  accessInfo: Document["accessInfo"];
+  isUnlockingCredit: boolean;
+  onUnlockWithCredit: () => void;
+}) {
   return (
     <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-5 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200">
       <p className="font-semibold">Bạn đang xem bản preview.</p>
       <p className="mt-1 text-sm">
-        Đăng nhập để đọc toàn bộ tài liệu và tải xuống.
+        Đăng nhập, dùng credit hoặc nâng cấp Premium để đọc toàn bộ tài liệu và tải xuống.
       </p>
       <div className="mt-4 flex flex-wrap gap-3">
         {!authenticated && <Link href="/login" className="app-button-primary app-button-compact">Đăng nhập</Link>}
+        {authenticated && accessInfo.canUnlockWithCredits && (
+          <button
+            type="button"
+            disabled={isUnlockingCredit}
+            onClick={onUnlockWithCredit}
+            className="app-button-primary app-button-compact disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isUnlockingCredit ? "Đang mở..." : `Dùng ${accessInfo.creditCost} credit`}
+          </button>
+        )}
+        {authenticated && !accessInfo.canUnlockWithCredits && (accessInfo.creditBalance ?? 0) < accessInfo.creditCost && (
+          <span className="inline-flex min-h-10 items-center rounded-lg border border-amber-300 bg-white/70 px-3 text-sm font-semibold text-amber-900 dark:border-amber-800 dark:bg-white/5 dark:text-amber-200">
+            Không đủ credit
+          </span>
+        )}
         <Link href="/pricing" className="app-button-secondary app-button-compact">Xem Premium</Link>
       </div>
     </div>
