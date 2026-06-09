@@ -31,7 +31,6 @@ interface Document {
   documentType: string;
   documentFile?: {
     fileUrl: string | null;
-    previewUrl?: string | null;
     fileType: "PDF" | "DOCX" | "PPTX";
     totalPages?: number;
   };
