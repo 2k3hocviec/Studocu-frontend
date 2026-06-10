@@ -56,7 +56,7 @@ export default function AdminDashboardPage() {
   const [error, setError] = useState("");
   const [stats, setStats] = useState<DashboardResponse["data"] | null>(null);
   
-  // State bộ lọc ngày
+  // Trạng thái bộ lọc ngày
   const [startDate, setStartDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() - 30);
@@ -64,10 +64,10 @@ export default function AdminDashboardPage() {
   });
   const [endDate, setEndDate] = useState(() => new Date().toISOString().split("T")[0]);
   
-  // Chọn chế độ hiển thị biểu đồ
+  // Chế độ hiển thị biểu đồ đang chọn
   const [chartMode, setChartMode] = useState<"revenue" | "users" | "documents" | "downloads">("revenue");
   
-  // Điểm đang hover trên biểu đồ
+  // Điểm đang được hover trên biểu đồ
   const [hoveredPoint, setHoveredPoint] = useState<{ x: number; y: number; label: string; val: string } | null>(null);
 
   const fetchStats = async () => {
@@ -149,7 +149,7 @@ export default function AdminDashboardPage() {
     return { x, y, date: d.date, val: d.val };
   });
 
-  // Tạo đường dẫn vẽ (path) cho line chart
+  // Tạo đường dẫn vẽ cho biểu đồ đường
   const pathD = points.reduce((acc, p, index) => {
     return index === 0 ? `M ${p.x} ${p.y}` : `${acc} L ${p.x} ${p.y}`;
   }, "");

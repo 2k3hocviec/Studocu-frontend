@@ -5,7 +5,7 @@ import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
-// Set up the worker
+// Cấu hình worker cho pdf.js.
 if (typeof window !== "undefined") {
     pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 }
@@ -26,7 +26,7 @@ export function PDFViewer({ fileUrl, totalPages = 0, isPreview = false, onDownlo
 
     const maxPage = isPreview ? 3 : numPages || totalPages || 100;
 
-    // Reset loading when file URL changes
+    // Đặt lại trạng thái tải khi URL file thay đổi.
     useEffect(() => {
         setIsLoading(true);
         setError(null);
@@ -80,9 +80,9 @@ export function PDFViewer({ fileUrl, totalPages = 0, isPreview = false, onDownlo
 
     return (
         <div className="space-y-4">
-            {/* Controls */}
+            {/* Thanh điều khiển */}
             <div className="flex flex-wrap items-center justify-between gap-4 bg-white dark:bg-white/5 p-4 rounded-lg border border-slate-200 dark:border-white/10">
-                {/* Navigation */}
+                {/* Điều hướng trang */}
                 <div className="flex items-center gap-2">
                     <button
                         onClick={handlePrevPage}
@@ -115,7 +115,7 @@ export function PDFViewer({ fileUrl, totalPages = 0, isPreview = false, onDownlo
                     </button>
                 </div>
 
-                {/* Zoom Controls */}
+                {/* Điều khiển thu phóng */}
                 <div className="flex items-center gap-2">
                     <button
                         onClick={handleZoomOut}
@@ -142,7 +142,7 @@ export function PDFViewer({ fileUrl, totalPages = 0, isPreview = false, onDownlo
                     </button>
                 </div>
 
-                {/* Download button */}
+                {/* Nút tải xuống */}
                 <a
                     href={fileUrl}
                     download
@@ -155,7 +155,7 @@ export function PDFViewer({ fileUrl, totalPages = 0, isPreview = false, onDownlo
                 </a>
             </div>
 
-            {/* PDF Viewer */}
+            {/* Trình xem PDF */}
             <div className="bg-white dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10 overflow-hidden">
                 <div className="overflow-auto bg-slate-100 dark:bg-slate-900 p-4 max-h-[600px] flex justify-center">
                     <Document
@@ -198,7 +198,7 @@ export function PDFViewer({ fileUrl, totalPages = 0, isPreview = false, onDownlo
                 </div>
             </div>
 
-            {/* Info */}
+            {/* Thông tin */}
             {isPreview && (
                 <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 rounded-lg p-4">
                     <p className="text-sm text-blue-800 dark:text-blue-300">

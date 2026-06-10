@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HọcLiệu - Giao diện web
 
-## Getting Started
+Đây là ứng dụng web Next.js của nền tảng HọcLiệu. Giao diện phục vụ trải nghiệm người dùng, khu vực cá nhân, luồng đăng tải tài liệu, thanh toán Premium và bảng điều khiển quản trị.
 
-First, run the development server:
+## Điểm nổi bật
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Trang chủ, kho tài liệu, trang chi tiết tài liệu và lớp giới hạn quyền xem trước.
+- Đăng nhập, đăng ký, xác thực OTP, quên mật khẩu và hồ sơ cá nhân.
+- Đăng tải tài liệu, xem trước PDF/DOCX, tải file và báo cáo vi phạm.
+- Bảng điều khiển quản trị cho tài liệu, báo cáo, người dùng, trường học và môn học.
+- Giao diện sáng/tối, bố cục đáp ứng mọi kích thước màn hình và favicon hình sách đồng bộ nhận diện HọcLiệu.
+
+## Công nghệ
+
+- Next.js 15 App Router
+- React 18
+- Tailwind CSS
+- `react-pdf`, `pdfjs-dist`, `docx-preview`
+- TypeScript
+
+## Cấu hình môi trường
+
+Tạo file `.env.local`:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Nếu máy chủ API chạy ở host khác, cập nhật `NEXT_PUBLIC_API_URL` tương ứng.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Chạy dự án
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```powershell
+npm install
+npm run dev
+```
 
-## Learn More
+Theo lệnh hiện tại, ứng dụng chạy tại:
 
-To learn more about Next.js, take a look at the following resources:
+```text
+http://localhost:4000
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Lệnh thường dùng
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```powershell
+npm run dev      # Chạy máy chủ phát triển
+npm run build    # Biên dịch bản production và kiểm tra type/lint qua Next
+npm run start    # Chạy máy chủ production sau khi biên dịch
+npm run lint     # Chạy lint nếu Next lint CLI khả dụng
+```
 
-## Deploy on Vercel
+## Cấu trúc chính
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```text
+src/
+├── app/                 # Các route theo Next App Router
+│   ├── admin/           # Bảng điều khiển quản trị
+│   ├── documents/       # Kho tài liệu và trang chi tiết
+│   └── user/            # Khu vực người dùng đã đăng nhập
+├── components/          # Form, trình xem tài liệu, header, hồ sơ, dialog
+├── utils/               # API client, ánh xạ lý do báo cáo
+└── types/               # Type declaration bổ sung
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Quy ước phát triển
+
+- Dùng `apiFetch` cho request cần xác thực để tự làm mới access token.
+- Trình xem tài liệu đi qua `DocumentViewer`; không gọi trực tiếp PDF/DOCX viewer ở màn hình nghiệp vụ nếu không có lý do rõ.
+- UI quản trị dùng modal fixed có z-index cao hơn sidebar để không bị che ở mọi kích thước màn hình.
+- Giữ toàn bộ text hiển thị bằng tiếng Việt chuẩn UTF-8.
+
+## Kiểm tra trước khi bàn giao
+
+```powershell
+npm run build
+```
+
+Một số màn hình legacy vẫn còn cảnh báo lint không chặn build. Khi chỉnh các màn hình đó, nên xử lý cảnh báo ngay trong cùng lượt thay đổi.

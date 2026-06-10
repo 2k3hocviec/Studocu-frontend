@@ -222,7 +222,7 @@ export function SiteHeader({ authenticated = false }: SiteHeaderProps) {
         });
       }
     } catch {
-      // Local session cleanup still logs the user out if the API is unavailable.
+      // Vẫn xóa phiên cục bộ để đăng xuất người dùng khi API không khả dụng.
     } finally {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");

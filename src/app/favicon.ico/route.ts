@@ -8,6 +8,7 @@ const bookIconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"
   <path d="M23 25h7.8M23 31h7.8M23 37h6M42 25h4.5M42 31h4.5M42 37h4.5" stroke="#047857" stroke-width="3" stroke-linecap="round"/>
 </svg>`;
 
+/** Trả về SVG hình sách cho các trình duyệt vẫn gọi fallback /favicon.ico. */
 export function GET() {
   return new NextResponse(bookIconSvg, {
     headers: {

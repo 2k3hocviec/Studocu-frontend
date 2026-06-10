@@ -74,7 +74,7 @@ export default function AdminSubjectsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   
-  // Toast state
+  // Trạng thái thông báo nhanh
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   const showToast = (message: string, type: "success" | "error" = "success") => {
@@ -84,7 +84,7 @@ export default function AdminSubjectsPage() {
     }, 3000);
   };
   
-  // Modal states
+  // Trạng thái modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<SubjectItem | null>(null);
   
@@ -128,7 +128,7 @@ export default function AdminSubjectsPage() {
     }
   };
 
-  // Debounce search query
+  // Giảm tần suất tìm kiếm khi người dùng đang nhập
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery);

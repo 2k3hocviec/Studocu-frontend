@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+/* eslint-disable @next/next/no-img-element -- Ảnh xem trước trong admin dùng URL tài liệu động từ local hoặc remote. */
+import { useCallback, useEffect, useState } from "react";
 import { DocumentViewer } from "@/components/document-viewer";
 import { apiFetch, getValidAccessToken } from "@/utils/api";
 
@@ -48,14 +49,17 @@ type APIResponse = {
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
 
+/** Trả về tên trường chính thức hoặc tên trường người dùng đề xuất trong bảng admin. */
 function schoolName(document: Pick<DocumentItem, "school" | "requestedSchoolName">) {
   return document.school?.name ?? document.requestedSchoolName ?? "Chưa có trường";
 }
 
+/** Trả về tên môn học chính thức hoặc tên môn học người dùng đề xuất trong bảng admin. */
 function subjectName(document: Pick<DocumentItem, "subject" | "requestedSubjectName">) {
   return document.subject?.name ?? document.requestedSubjectName ?? "Chưa có môn học";
 }
 
+/** Hiển thị màn hình quản trị tài liệu và toàn bộ thao tác kiểm duyệt. */
 export default function AdminDocumentsPage() {
   const [loading, setLoading] = useState(true);
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
@@ -70,22 +74,24 @@ export default function AdminDocumentsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
   
-  // Toast state
+  // Trạng thái thông báo nhanh
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
-  const showToast = (message: string, type: "success" | "error" = "success") => {
+  /** Hiển thị phản hồi thành công hoặc lỗi trong thời gian ngắn cho thao tác admin. */
+  const showToast = useCallback((message: string, type: "success" | "error" = "success") => {
     setToast({ message, type });
     setTimeout(() => {
       setToast(null);
     }, 3000);
-  };
+  }, []);
 
-  // State xử lý Reject Modal
+  // Trạng thái xử lý modal từ chối
   const [rejectingDocId, setRejectingDocId] = useState<number | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [isSubmittingReject, setIsSubmittingReject] = useState(false);
 
-  const fetchDocuments = async (searchVal = debouncedSearch) => {
+  /** Tải trang tài liệu hiện tại theo bộ lọc và từ khóa tìm kiếm đang chọn. */
+  const fetchDocuments = useCallback(async (searchVal = debouncedSearch) => {
     setLoading(true);
     
     let url = `${apiUrl}/documents?page=${currentPage}&limit=10`;
@@ -104,8 +110,9 @@ export default function AdminDocumentsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, debouncedSearch, statusFilter]);
 
+  /** Mở một tài liệu trong modal xem xét và tải đầy đủ metadata của tài liệu đó. */
   const openDocumentDetail = async (id: number) => {
     setDetailLoading(true);
     setSelectedDocument(null);
@@ -119,14 +126,14 @@ export default function AdminDocumentsPage() {
       } else {
         showToast(result.message ?? "Không thể tải chi tiết tài liệu.", "error");
       }
-    } catch (err) {
+    } catch {
       showToast("Lỗi kết nối máy chủ.", "error");
     } finally {
       setDetailLoading(false);
     }
   };
 
-  // Debounce search query
+  // Giảm tần suất tìm kiếm khi người dùng đang nhập
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery);
@@ -134,16 +141,17 @@ export default function AdminDocumentsPage() {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Reset page to 1 khi đổi bộ lọc tìm kiếm hoặc status
+  // Đưa về trang 1 khi đổi bộ lọc tìm kiếm hoặc trạng thái
   useEffect(() => {
     setCurrentPage(1);
   }, [debouncedSearch, statusFilter]);
 
   useEffect(() => {
     fetchDocuments(debouncedSearch);
-  }, [currentPage, statusFilter, debouncedSearch]);
+  }, [debouncedSearch, fetchDocuments]);
 
-  // Hành động Duyệt tài liệu
+  // Hành động duyệt tài liệu
+  /** Duyệt tài liệu đang chờ và tải lại danh sách. */
   const handleApprove = async (id: number) => {
     if (!confirm("Bạn có chắc chắn muốn duyệt tài liệu này? Người tải lên sẽ nhận được 2 credit.")) return;
     try {
@@ -158,12 +166,13 @@ export default function AdminDocumentsPage() {
       } else {
         showToast(result.message ?? "Lỗi duyệt tài liệu.", "error");
       }
-    } catch (err) {
+    } catch {
       showToast("Lỗi kết nối máy chủ.", "error");
     }
   };
 
   // Hành động Ẩn tài liệu
+  /** Ẩn tài liệu đã duyệt khỏi danh sách công khai. */
   const handleHide = async (id: number) => {
     if (!confirm("Bạn có chắc chắn muốn ẩn tài liệu này khỏi công chúng?")) return;
     try {
@@ -178,12 +187,13 @@ export default function AdminDocumentsPage() {
       } else {
         showToast(result.message ?? "Lỗi ẩn tài liệu.", "error");
       }
-    } catch (err) {
+    } catch {
       showToast("Lỗi kết nối máy chủ.", "error");
     }
   };
 
   // Hành động Xóa mềm tài liệu
+  /** Xóa mềm tài liệu khỏi khu vực admin và các màn hình công khai. */
   const handleDelete = async (id: number) => {
     if (!confirm("Bạn có chắc chắn muốn xóa tài liệu này? (Tài liệu sẽ không hiển thị ở bất kỳ đâu)")) return;
     try {
@@ -198,12 +208,13 @@ export default function AdminDocumentsPage() {
       } else {
         showToast(result.message ?? "Lỗi xóa tài liệu.", "error");
       }
-    } catch (err) {
+    } catch {
       showToast("Lỗi kết nối máy chủ.", "error");
     }
   };
 
   // Hành động Hủy ẩn tài liệu
+  /** Khôi phục tài liệu đang ẩn để hiển thị công khai trở lại. */
   const handleUnhide = async (id: number) => {
     if (!confirm("Bạn có chắc chắn muốn bỏ ẩn tài liệu này?")) return;
     try {
@@ -218,12 +229,13 @@ export default function AdminDocumentsPage() {
       } else {
         showToast(result.message ?? "Lỗi bỏ ẩn tài liệu.", "error");
       }
-    } catch (err) {
+    } catch {
       showToast("Lỗi kết nối máy chủ.", "error");
     }
   };
 
   // Nộp lý do Từ chối
+  /** Gửi lý do từ chối cho tài liệu đang được chọn. */
   const submitReject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!rejectReason.trim()) return;
@@ -246,13 +258,14 @@ export default function AdminDocumentsPage() {
       } else {
         showToast(result.message ?? "Lỗi từ chối tài liệu.", "error");
       }
-    } catch (err) {
+    } catch {
       showToast("Lỗi kết nối máy chủ.", "error");
     } finally {
       setIsSubmittingReject(false);
     }
   };
 
+  /** Chuyển trạng thái kiểm duyệt từ backend thành nhãn hiển thị dễ đọc. */
   const getStatusBadge = (status: DocumentItem["status"]) => {
     switch (status) {
       case "APPROVED":
@@ -522,6 +535,7 @@ export default function AdminDocumentsPage() {
   );
 }
 
+/** Hiển thị metadata, bản xem trước file và các thao tác kiểm duyệt trong modal. */
 function DocumentDetailModal({
   document,
   isLoading,
@@ -726,6 +740,7 @@ function DocumentDetailModal({
   );
 }
 
+/** Hiển thị một cặp nhãn/giá trị trong cột thông tin chi tiết tài liệu. */
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div>

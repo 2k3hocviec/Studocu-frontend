@@ -1,9 +1,10 @@
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
 
+/** Kiểm tra JWT đã hết hạn hoặc sắp hết hạn để chủ động làm mới sớm. */
 function isTokenExpired(token: string): boolean {
   try {
     const payload = JSON.parse(atob(token.split(".")[1]));
-    if (payload.exp && Date.now() >= payload.exp * 1000 - 30000) { // 30s buffer
+    if (payload.exp && Date.now() >= payload.exp * 1000 - 30_000) {
       return true;
     }
     return false;
@@ -15,15 +16,18 @@ function isTokenExpired(token: string): boolean {
 let isRefreshing = false;
 let refreshSubscribers: ((token: string | null) => void)[] = [];
 
+/** Đưa các request vào hàng chờ khi đang có một lượt làm mới token chạy. */
 function subscribeTokenRefresh(cb: (token: string | null) => void) {
   refreshSubscribers.push(cb);
 }
 
+/** Giải phóng các request đang chờ sau khi làm mới token thành công hoặc thất bại. */
 function onRefreshed(token: string | null) {
   refreshSubscribers.forEach((cb) => cb(token));
   refreshSubscribers = [];
 }
 
+/** Đổi refresh token lấy phiên mới và xóa xác thực cục bộ nếu thất bại. */
 async function performRefresh(): Promise<string | null> {
   if (typeof window === "undefined") return null;
   const refreshToken = localStorage.getItem("refreshToken");
@@ -46,12 +50,12 @@ async function performRefresh(): Promise<string | null> {
     console.error("Refresh token error:", err);
   }
 
-  // Clear tokens if refresh fails
   localStorage.removeItem("accessToken");
   localStorage.removeItem("refreshToken");
   return null;
 }
 
+/** Trả về access token dùng được, tự làm mới một lần khi cần. */
 export async function getValidAccessToken(): Promise<string | null> {
   if (typeof window === "undefined") return null;
   
@@ -77,6 +81,7 @@ export async function getValidAccessToken(): Promise<string | null> {
   return token;
 }
 
+/** Bọc fetch để gắn xác thực và thử lại một lần khi gặp phản hồi 401. */
 export async function apiFetch(urlOrPath: string, options: RequestInit = {}): Promise<Response> {
   const url = urlOrPath.startsWith("http") ? urlOrPath : `${apiUrl}${urlOrPath}`;
   const token = await getValidAccessToken();
@@ -88,7 +93,6 @@ export async function apiFetch(urlOrPath: string, options: RequestInit = {}): Pr
 
   const response = await fetch(url, { ...options, headers });
 
-  // If we get a 401 unauthorized, retry once by forcing token refresh
   if (response.status === 401 && typeof window !== "undefined") {
     const refreshToken = localStorage.getItem("refreshToken");
     if (refreshToken) {
@@ -105,6 +109,7 @@ export async function apiFetch(urlOrPath: string, options: RequestInit = {}): Pr
   return response;
 }
 
+/** Gửi báo cáo tài liệu của người dùng và chuẩn hóa lỗi API thành exception. */
 export async function submitReport(
   documentId: number,
   reason: string,

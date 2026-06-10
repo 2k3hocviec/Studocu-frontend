@@ -40,7 +40,7 @@ export default function AdminUsersPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   
-  // Toast state
+  // Trạng thái thông báo nhanh
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   const showToast = (message: string, type: "success" | "error" = "success") => {
@@ -69,7 +69,7 @@ export default function AdminUsersPage() {
     }
   };
 
-  // Debounce search query
+  // Giảm tần suất tìm kiếm khi người dùng đang nhập
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery);
