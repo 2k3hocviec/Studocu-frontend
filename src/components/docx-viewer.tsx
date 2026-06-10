@@ -9,6 +9,7 @@ interface DOCXViewerProps {
     onDownload?: () => void;
 }
 
+/** Hiển thị file DOCX bằng docx-preview. */
 export function DOCXViewer({ fileUrl, isPreview = false, onDownload }: DOCXViewerProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -101,6 +102,7 @@ export function DOCXViewer({ fileUrl, isPreview = false, onDownload }: DOCXViewe
     );
 }
 
+/** Thanh tải xuống cho file DOCX. */
 function DownloadBar({ fileUrl, onDownload }: { fileUrl: string; onDownload?: () => void }) {
     return (
         <div className="flex items-center justify-end rounded-lg border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-white/5">

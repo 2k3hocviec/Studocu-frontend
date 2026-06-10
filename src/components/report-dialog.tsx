@@ -11,6 +11,7 @@ export interface ReportDialogProps {
     onClose: () => void;
 }
 
+/** Modal gửi báo cáo vi phạm cho tài liệu. */
 export function ReportDialog({
     isOpen,
     documentTitle,

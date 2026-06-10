@@ -36,6 +36,7 @@ export const REPORT_REASONS = [
   },
 ] as const;
 
+/** Lấy nhãn tiếng Việt cho mã lý do báo cáo. */
 export function reportReasonLabel(reasonId: string) {
   return REPORT_REASONS.find((reason) => reason.id === reasonId)?.label ?? reasonId;
 }

@@ -5,6 +5,7 @@ type PaymentResultProps = {
   success: boolean;
 };
 
+/** Màn hình kết quả sau khi thanh toán premium. */
 export function PaymentResult({ success }: PaymentResultProps) {
   return (
     <div className="min-h-screen bg-[#f5f8f7] text-slate-900">

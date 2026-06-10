@@ -47,7 +47,7 @@ type SchoolsResponse = {
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
 
-// Hàm chuyển tiếng Việt thành slug
+// Chuyển tiếng Việt có dấu thành slug không dấu.
 function toSlug(str: string) {
   str = str.toLowerCase();
   str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
@@ -63,20 +63,22 @@ function toSlug(str: string) {
   return str.trim();
 }
 
+/** Trang quản lý môn học trong admin. */
 export default function AdminSubjectsPage() {
   const [loading, setLoading] = useState(true);
   const [subjects, setSubjects] = useState<SubjectItem[]>([]);
   const [schools, setSchools] = useState<SchoolOption[]>([]);
   const [meta, setMeta] = useState<APIResponse["data"]["meta"] | null>(null);
   
-  // Bộ lọc
+  // Bộ lọc tìm kiếm
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   
-  // Trạng thái thông báo nhanh
+  // Thông báo nhanh cho thao tác admin.
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
+  /** Hiển thị toast trong thời gian ngắn. */
   const showToast = (message: string, type: "success" | "error" = "success") => {
     setToast({ message, type });
     setTimeout(() => {
@@ -115,7 +117,7 @@ export default function AdminSubjectsPage() {
     }
   };
 
-  // Lấy toàn bộ trường học làm tùy chọn (Dropdown options)
+  // Lấy danh sách trường học để chọn khi tạo/sửa môn học.
   const fetchSchoolOptions = async () => {
     try {
       const response = await apiFetch(`${apiUrl}/schools?limit=100`);
@@ -128,7 +130,7 @@ export default function AdminSubjectsPage() {
     }
   };
 
-  // Giảm tần suất tìm kiếm khi người dùng đang nhập
+  // Giảm tần suất tìm kiếm khi người dùng đang nhập.
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery);
@@ -136,7 +138,7 @@ export default function AdminSubjectsPage() {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Reset page to 1 khi đổi bộ lọc tìm kiếm
+  // Đưa về trang đầu khi đổi bộ lọc.
   useEffect(() => {
     setCurrentPage(1);
   }, [debouncedSearch]);
@@ -146,6 +148,7 @@ export default function AdminSubjectsPage() {
     fetchSchoolOptions();
   }, [currentPage, debouncedSearch]);
 
+  /** Mở modal thêm môn học mới. */
   const openAddModal = () => {
     setEditingSubject(null);
     setFormData({
@@ -157,6 +160,7 @@ export default function AdminSubjectsPage() {
     setIsModalOpen(true);
   };
 
+  /** Mở modal chỉnh sửa môn học. */
   const openEditModal = (subject: SubjectItem) => {
     setEditingSubject(subject);
     setFormData({
@@ -168,6 +172,7 @@ export default function AdminSubjectsPage() {
     setIsModalOpen(true);
   };
 
+  /** Cập nhật tên và tự sinh slug tương ứng. */
   const handleNameChange = (nameVal: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -240,7 +245,6 @@ export default function AdminSubjectsPage() {
 
   return (
     <div className="min-w-0 space-y-6">
-      {/* Search Filter Toolbar */}
       <div className="flex flex-col gap-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm animate-fadeIn dark:border-slate-800/40 dark:bg-slate-900 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex w-full flex-1 gap-2 lg:max-w-md">
           <div className="relative flex-1">
@@ -271,7 +275,6 @@ export default function AdminSubjectsPage() {
         </button>
       </div>
 
-      {/* Subjects Table */}
       <div className="overflow-hidden rounded-2xl bg-white shadow-sm dark:bg-slate-900 border border-slate-100 dark:border-slate-800/40">
         {loading ? (
           <div className="flex h-60 items-center justify-center">
@@ -329,7 +332,6 @@ export default function AdminSubjectsPage() {
           </div>
         )}
 
-        {/* Pagination Footer */}
         {meta && meta.totalPages > 1 && (
           <div className="flex flex-col gap-3 border-t border-slate-100 px-4 py-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <span className="text-xs font-semibold text-slate-400">
@@ -355,7 +357,6 @@ export default function AdminSubjectsPage() {
         )}
       </div>
 
-      {/* Add/Edit Subject Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
           <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-xl animate-scaleUp dark:bg-slate-900">
@@ -433,7 +434,6 @@ export default function AdminSubjectsPage() {
         </div>
       )}
 
-      {/* Toast Notification */}
       {toast && (
         <div className={`fixed bottom-5 right-5 z-50 flex items-center space-x-2 rounded-xl px-5 py-3 shadow-lg transition-all duration-300 animate-slideIn ${
           toast.type === "success" 

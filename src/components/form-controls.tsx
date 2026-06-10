@@ -17,6 +17,7 @@ type FieldProps = {
   onRightIconClick?: () => void;
 };
 
+/** Field form dùng chung với label, icon và trạng thái lỗi. */
 export function Field({
   label,
   name,
@@ -67,6 +68,7 @@ export function Field({
   );
 }
 
+/** Nút submit dùng chung cho form xác thực. */
 export function SubmitButton({
   children,
   disabled = false,

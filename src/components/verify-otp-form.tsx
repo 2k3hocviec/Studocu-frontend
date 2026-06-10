@@ -16,6 +16,7 @@ type ApiResponse = {
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
 
+/** Form xác thực OTP cho đăng ký hoặc đặt lại mật khẩu. */
 export function VerifyOtpForm({ email, resetPassword }: VerifyOtpFormProps) {
   const router = useRouter();
   const [error, setError] = useState("");

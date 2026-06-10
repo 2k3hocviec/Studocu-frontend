@@ -60,6 +60,7 @@ type APIResponse = {
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
 
+/** Chuẩn hóa meta phân trang từ nhiều dạng response API. */
 function normalizeMeta(data: APIResponse["data"]): PageMeta {
   if (data.meta) return data.meta;
   return {
@@ -69,6 +70,7 @@ function normalizeMeta(data: APIResponse["data"]): PageMeta {
   };
 }
 
+/** Trang quản lý báo cáo tài liệu. */
 export default function AdminReportsPage() {
   const [loading, setLoading] = useState(true);
   const [reports, setReports] = useState<ReportItem[]>([]);
@@ -79,6 +81,7 @@ export default function AdminReportsPage() {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
+  /** Hiển thị toast trong thời gian ngắn. */
   const showToast = (message: string, type: "success" | "error" = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
@@ -288,6 +291,7 @@ export default function AdminReportsPage() {
   );
 }
 
+/** Badge trạng thái xử lý báo cáo. */
 function StatusBadge({ status }: { status: ReportStatus }) {
   switch (status) {
     case "RESOLVED":
@@ -299,6 +303,7 @@ function StatusBadge({ status }: { status: ReportStatus }) {
   }
 }
 
+/** Modal xem chi tiết báo cáo và tài liệu bị báo cáo. */
 function ReportDetailModal({
   report,
   isLoading,

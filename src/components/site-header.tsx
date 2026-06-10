@@ -22,12 +22,13 @@ type Subscription = {
   endDate: string;
 } | null;
 
+/** Logo thư viện số hiển thị ở header. */
 function DigitalLibraryLogo() {
+  /** Icon HKH dạng SVG tùy biến. */
   function HKHLogo() {
     return (
       <span className="flex items-center gap-3" aria-label="HKH Kho Tài Liệu Số">
 
-        {/* ── Icon sách + lá cây ── */}
         <span className="relative shrink-0">
           <svg
             viewBox="0 0 118 130"
@@ -66,26 +67,22 @@ function DigitalLibraryLogo() {
               </linearGradient>
             </defs>
 
-            {/* Gáy sách */}
             <rect
               x="4" y="8" width="9" height="86" rx="2"
               className="fill-[url(#hkh-spine)] dark:fill-[url(#hkh-spine-dark)]"
             />
 
-            {/* Bìa sách */}
             <rect
               x="13" y="2" width="74" height="92" rx="4"
               className="fill-[url(#hkh-cover)] stroke-sky-300 dark:fill-[url(#hkh-cover-dark)] dark:stroke-sky-400"
               strokeWidth="0.8"
             />
 
-            {/* Trang sách */}
             <rect
               x="15" y="4" width="68" height="88" rx="3"
               className="fill-[url(#hkh-page)] dark:fill-slate-900"
             />
 
-            {/* Dòng kẻ trang */}
             <rect x="20" y="14" width="42" height="2.5" rx="1.2" className="fill-slate-300 dark:fill-slate-600" />
             <rect x="20" y="21" width="52" height="2.5" rx="1.2" className="fill-slate-200 dark:fill-slate-700" />
             <rect x="20" y="28" width="38" height="2.5" rx="1.2" className="fill-slate-200 dark:fill-slate-700" />
@@ -93,29 +90,24 @@ function DigitalLibraryLogo() {
             <rect x="20" y="42" width="34" height="2.5" rx="1.2" className="fill-slate-200 dark:fill-slate-700" />
             <rect x="20" y="49" width="44" height="2.5" rx="1.2" className="fill-slate-200 dark:fill-slate-700" />
 
-            {/* Thanh màu dưới bìa */}
             <rect x="13" y="90" width="74" height="8" rx="2" className="fill-sky-700 dark:fill-sky-500" />
 
-            {/* Lá cây */}
             <path
               d="M68 76 Q80 42 102 30 Q100 54 85 68 Q97 64 106 57 Q104 78 80 84 Q73 86 68 76Z"
               className="fill-[url(#hkh-leaf)] dark:fill-[url(#hkh-leaf-dark)]"
               opacity="0.93"
             />
-            {/* Gân lá chính */}
             <path
               d="M68 76 Q84 58 102 30"
               className="stroke-green-700 dark:stroke-green-400"
               strokeWidth="1.2" fill="none" strokeLinecap="round"
             />
-            {/* Gân lá phụ */}
             <path
               d="M76 72 Q86 57 97 40"
               className="stroke-green-300 dark:stroke-green-200"
               strokeWidth="0.7" fill="none" strokeLinecap="round" opacity="0.65"
             />
 
-            {/* Chữ HKH */}
             <text
               x="50" y="118"
               textAnchor="middle"
@@ -136,7 +128,6 @@ function DigitalLibraryLogo() {
               className="text-sky-700 dark:text-sky-300"
             >HKH</text>
 
-            {/* Gạch dưới HKH */}
             <line
               x1="15" y1="122" x2="85" y2="122"
               className="stroke-sky-500 dark:stroke-sky-400"
@@ -145,10 +136,8 @@ function DigitalLibraryLogo() {
           </svg>
         </span>
 
-        {/* ── Đường kẻ dọc phân cách ── */}
         <span className="hidden h-9 w-px shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 sm:block" />
 
-        {/* ── Tên thương hiệu ── */}
         <span className="hidden flex-col gap-1 sm:flex">
           <span className="block text-[12px] font-black tracking-[0.14em] text-slate-800 dark:text-slate-100">
             KHO TÀI LIỆU SỐ
@@ -163,6 +152,7 @@ function DigitalLibraryLogo() {
   return <HKHLogo />;
 }
 
+/** Header điều hướng chính của website. */
 export function SiteHeader({ authenticated = false }: SiteHeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -175,6 +165,7 @@ export function SiteHeader({ authenticated = false }: SiteHeaderProps) {
     { href: "/pricing", label: "Gói Premium", active: pathname === "/pricing" },
   ];
 
+  /** Tạo class cho link public theo trạng thái active. */
   const publicLinkClass = (active: boolean) =>
     active
       ? "border-b-2 border-[#006d45] py-5 font-medium text-[#006d45] dark:border-emerald-400 dark:text-emerald-400"

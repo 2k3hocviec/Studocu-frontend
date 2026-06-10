@@ -5,6 +5,7 @@ import { ForgotPasswordForm } from "@/components/forgot-password-form";
 
 export const metadata: Metadata = { title: "Quên mật khẩu | HọcLiệu" };
 
+/** Trang quên mật khẩu. */
 export default function ForgotPasswordPage() {
   return (
     <AuthCard

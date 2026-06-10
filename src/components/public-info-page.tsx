@@ -17,6 +17,7 @@ type PublicInfoPageProps = {
   };
 };
 
+/** Trang nội dung tĩnh dùng chung cho about, terms, privacy và các trang thông tin. */
 export function PublicInfoPage({ eyebrow, title, description, items, action }: PublicInfoPageProps) {
   return (
     <div className="min-h-screen bg-[#f8faf9] text-[#121b17] dark:bg-slate-950 dark:text-slate-100">

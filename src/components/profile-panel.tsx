@@ -77,14 +77,17 @@ type ProfileDocument = {
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
 
+/** Format ngày ngắn theo locale Việt Nam. */
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("vi-VN").format(new Date(value));
 }
 
+/** Format tiền VND. */
 function formatMoney(value: number) {
   return new Intl.NumberFormat("vi-VN").format(value);
 }
 
+/** Format ngày giờ hoặc trả nhãn mặc định khi chưa có dữ liệu. */
 function formatDateTime(value: string | null) {
   if (!value) return "Chưa hoàn tất";
   return new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short" }).format(new Date(value));
@@ -129,6 +132,7 @@ const paymentMethodLabels: Record<PaymentHistoryItem["method"], string> = {
   VNPAY: "VNPAY",
 };
 
+/** Panel hồ sơ cá nhân, lịch sử thanh toán và thư viện tài liệu của user. */
 export function ProfilePanel() {
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -245,6 +249,7 @@ export function ProfilePanel() {
     void loadPaymentHistory();
   }, [paymentPage]);
 
+  /** Lấy access token hiện tại từ localStorage. */
   function authToken() {
     const accessToken = localStorage.getItem("accessToken");
     if (!accessToken) router.replace("/login");
@@ -288,18 +293,21 @@ export function ProfilePanel() {
     }
   }
 
+  /** Mở modal đổi mật khẩu. */
   function openPasswordModal() {
     setIsPasswordModalOpen(true);
     setPasswordError("");
     setPasswordNotice("");
   }
 
+  /** Đóng modal đổi mật khẩu và reset form. */
   function closePasswordModal() {
     setIsPasswordModalOpen(false);
     setPasswordError("");
     setPasswordNotice("");
   }
 
+  /** Đóng modal khi click ra backdrop. */
   function closePasswordModalFromBackdrop(event: MouseEvent<HTMLDivElement>) {
     if (event.target === event.currentTarget) closePasswordModal();
   }
@@ -624,6 +632,7 @@ export function ProfilePanel() {
   );
 }
 
+/** Bảng lịch sử thanh toán của user. */
 function PaymentHistoryPanel({
   payments,
   pagination,
@@ -730,6 +739,7 @@ function PaymentHistoryPanel({
   );
 }
 
+/** Input mật khẩu có nút hiện/ẩn. */
 function PasswordField({
   label,
   value,
@@ -759,6 +769,7 @@ function PasswordField({
   );
 }
 
+/** Nút chuyển tab thư viện tài liệu trong profile. */
 function LibraryToggleButton({
   mode,
   isOpen,
@@ -792,6 +803,7 @@ function LibraryToggleButton({
   );
 }
 
+/** Icon đồng hồ dùng cho metadata. */
 function ClockIcon() {
   return (
     <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2">
@@ -801,6 +813,7 @@ function ClockIcon() {
   );
 }
 
+/** Icon tài liệu dùng trong card profile. */
 function DocumentIcon() {
   return (
     <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2">
@@ -812,6 +825,7 @@ function DocumentIcon() {
   );
 }
 
+/** Icon mũi tên mở/đóng section. */
 function ChevronIcon({ isOpen }: { isOpen: boolean }) {
   return (
     <svg
@@ -826,6 +840,7 @@ function ChevronIcon({ isOpen }: { isOpen: boolean }) {
   );
 }
 
+/** Panel hiển thị tài liệu đã đăng hoặc đã xem gần đây. */
 function DocumentLibraryPanel({
   mode,
   documents,
@@ -860,6 +875,7 @@ function DocumentLibraryPanel({
   );
 }
 
+/** Card tài liệu trong khu vực hồ sơ cá nhân. */
 function ProfileDocumentCard({ document, showStatus }: { document: ProfileDocument; showStatus: boolean }) {
   const schoolName = document.school?.name ?? document.requestedSchoolName ?? "Chưa có trường";
   const subjectName = document.subject?.name ?? document.requestedSubjectName ?? "Chưa có môn học";

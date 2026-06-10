@@ -4,9 +4,11 @@ import { useRouter } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { DocumentUploadForm } from "@/components/document-upload-form";
 
+/** Trang upload tài liệu của user. */
 export default function UploadPage() {
   const router = useRouter();
 
+  /** Điều hướng về thư viện user sau khi upload thành công. */
   const handleSuccess = () => {
     setTimeout(() => {
       router.push("/user");

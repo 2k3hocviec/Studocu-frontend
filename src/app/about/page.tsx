@@ -3,6 +3,7 @@ import { PublicInfoPage } from "@/components/public-info-page";
 
 export const metadata: Metadata = { title: "Về chúng tôi | HọcLiệu" };
 
+/** Trang giới thiệu hệ thống. */
 export default function AboutPage() {
   return (
     <PublicInfoPage

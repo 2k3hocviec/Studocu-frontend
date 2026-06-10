@@ -21,6 +21,7 @@ interface PDFPageViewerProps {
     onDownload?: () => void;
 }
 
+/** Trình xem PDF render từng trang bằng pdf.js canvas. */
 export function PDFPageViewer({ fileUrl, totalPages = 0, downloadFileName, onDownload }: PDFPageViewerProps) {
     const [pdfDocument, setPdfDocument] = useState<PdfDocument | null>(null);
     const [pageCount, setPageCount] = useState(totalPages);
@@ -106,6 +107,7 @@ export function PDFPageViewer({ fileUrl, totalPages = 0, downloadFileName, onDow
     );
 }
 
+/** Render một trang PDF vào canvas. */
 function PDFCanvasPage({ pdfDocument, pageNumber }: { pdfDocument: PdfDocument; pageNumber: number }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [error, setError] = useState<string | null>(null);
@@ -159,6 +161,7 @@ function PDFCanvasPage({ pdfDocument, pageNumber }: { pdfDocument: PdfDocument; 
     );
 }
 
+/** Khung trạng thái dùng chung cho trình xem PDF. */
 function ViewerShell({ title, description, tone = "neutral" }: { title: string; description: string; tone?: "neutral" | "error" }) {
     const classes = tone === "error"
         ? "border-red-200 bg-red-50 text-red-800 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-200"

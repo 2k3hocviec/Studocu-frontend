@@ -5,6 +5,7 @@ type PremiumBadgeProps = {
   className?: string;
 };
 
+/** Badge hiển thị trạng thái premium của người dùng. */
 export function PremiumBadge({ compact = false, className = "" }: PremiumBadgeProps) {
   return (
     <span

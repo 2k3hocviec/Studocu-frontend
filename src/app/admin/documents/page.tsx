@@ -68,13 +68,13 @@ export default function AdminDocumentsPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   
-  // Các bộ lọc
+  // Bộ lọc danh sách tài liệu.
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [debouncedSearch, setDebouncedSearch] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
   
-  // Trạng thái thông báo nhanh
+  // Thông báo nhanh cho thao tác admin.
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   /** Hiển thị phản hồi thành công hoặc lỗi trong thời gian ngắn cho thao tác admin. */
@@ -85,7 +85,7 @@ export default function AdminDocumentsPage() {
     }, 3000);
   }, []);
 
-  // Trạng thái xử lý modal từ chối
+  // Trạng thái modal từ chối.
   const [rejectingDocId, setRejectingDocId] = useState<number | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [isSubmittingReject, setIsSubmittingReject] = useState(false);
@@ -133,7 +133,7 @@ export default function AdminDocumentsPage() {
     }
   };
 
-  // Giảm tần suất tìm kiếm khi người dùng đang nhập
+  // Giảm tần suất tìm kiếm khi người dùng đang nhập.
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery);
@@ -141,7 +141,7 @@ export default function AdminDocumentsPage() {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Đưa về trang 1 khi đổi bộ lọc tìm kiếm hoặc trạng thái
+  // Đưa về trang đầu khi đổi bộ lọc.
   useEffect(() => {
     setCurrentPage(1);
   }, [debouncedSearch, statusFilter]);
@@ -150,7 +150,6 @@ export default function AdminDocumentsPage() {
     fetchDocuments(debouncedSearch);
   }, [debouncedSearch, fetchDocuments]);
 
-  // Hành động duyệt tài liệu
   /** Duyệt tài liệu đang chờ và tải lại danh sách. */
   const handleApprove = async (id: number) => {
     if (!confirm("Bạn có chắc chắn muốn duyệt tài liệu này? Người tải lên sẽ nhận được 2 credit.")) return;
@@ -171,7 +170,6 @@ export default function AdminDocumentsPage() {
     }
   };
 
-  // Hành động Ẩn tài liệu
   /** Ẩn tài liệu đã duyệt khỏi danh sách công khai. */
   const handleHide = async (id: number) => {
     if (!confirm("Bạn có chắc chắn muốn ẩn tài liệu này khỏi công chúng?")) return;
@@ -192,7 +190,6 @@ export default function AdminDocumentsPage() {
     }
   };
 
-  // Hành động Xóa mềm tài liệu
   /** Xóa mềm tài liệu khỏi khu vực admin và các màn hình công khai. */
   const handleDelete = async (id: number) => {
     if (!confirm("Bạn có chắc chắn muốn xóa tài liệu này? (Tài liệu sẽ không hiển thị ở bất kỳ đâu)")) return;
@@ -213,7 +210,6 @@ export default function AdminDocumentsPage() {
     }
   };
 
-  // Hành động Hủy ẩn tài liệu
   /** Khôi phục tài liệu đang ẩn để hiển thị công khai trở lại. */
   const handleUnhide = async (id: number) => {
     if (!confirm("Bạn có chắc chắn muốn bỏ ẩn tài liệu này?")) return;
@@ -234,7 +230,6 @@ export default function AdminDocumentsPage() {
     }
   };
 
-  // Nộp lý do Từ chối
   /** Gửi lý do từ chối cho tài liệu đang được chọn. */
   const submitReject = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -266,6 +261,7 @@ export default function AdminDocumentsPage() {
   };
 
   /** Chuyển trạng thái kiểm duyệt từ backend thành nhãn hiển thị dễ đọc. */
+  /** Trả badge trạng thái kiểm duyệt tài liệu. */
   const getStatusBadge = (status: DocumentItem["status"]) => {
     switch (status) {
       case "APPROVED":
@@ -281,7 +277,6 @@ export default function AdminDocumentsPage() {
 
   return (
     <div className="min-w-0 space-y-6">
-      {/* Search & Filter Header bar */}
       <div className="flex flex-col gap-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm dark:border-slate-800/40 dark:bg-slate-900 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex w-full flex-1 gap-2 lg:max-w-md">
           <div className="relative flex-1">
@@ -318,7 +313,6 @@ export default function AdminDocumentsPage() {
         </div>
       </div>
 
-      {/* Main Table area */}
       <div className="overflow-hidden rounded-2xl bg-white shadow-sm dark:bg-slate-900 border border-slate-100 dark:border-slate-800/40">
         {loading ? (
           <div className="flex h-60 items-center justify-center">
@@ -436,7 +430,6 @@ export default function AdminDocumentsPage() {
           </div>
         )}
 
-        {/* Pagination Footer */}
         {meta && meta.totalPages > 1 && (
           <div className="flex flex-col gap-3 border-t border-slate-100 px-4 py-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <span className="text-xs font-semibold text-slate-400">
@@ -482,7 +475,6 @@ export default function AdminDocumentsPage() {
         />
       )}
 
-      {/* Reject Dialog Modal */}
       {rejectingDocId && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
           <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-xl animate-scaleUp dark:bg-slate-900">
@@ -521,7 +513,6 @@ export default function AdminDocumentsPage() {
         </div>
       )}
 
-      {/* Toast Notification */}
       {toast && (
         <div className={`fixed bottom-5 right-5 z-50 flex items-center space-x-2 rounded-xl px-5 py-3 shadow-lg transition-all duration-300 animate-slideIn ${
           toast.type === "success" 

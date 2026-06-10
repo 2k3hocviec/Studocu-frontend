@@ -13,10 +13,12 @@ type DocumentStatus = "idle" | "uploading" | "success" | "error";
 type SchoolOption = { id: number; name: string };
 type SubjectOption = { id: number; name: string; schoolId: number };
 
+/** So sánh tên trường/môn học theo tiếng Việt không phân biệt hoa thường. */
 function sameName(left: string, right: string) {
     return left.trim().toLocaleLowerCase("vi-VN") === right.trim().toLocaleLowerCase("vi-VN");
 }
 
+/** Form upload tài liệu, metadata và file đính kèm. */
 export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormProps) {
     const [file, setFile] = useState<File | null>(null);
     const [status, setStatus] = useState<DocumentStatus>("idle");
@@ -255,7 +257,6 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
-            {/* File Upload Area */}
             <div
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -286,7 +287,6 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
                 )}
             </div>
 
-            {/* Form Fields */}
             <div>
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
                     Tiêu đề *
@@ -367,21 +367,18 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
                 </label>
             </div>
 
-            {/* Error Message */}
             {status === "error" && errorMsg && (
                 <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/30 dark:bg-red-950/20 dark:text-red-400">
                     ⚠️ {errorMsg}
                 </div>
             )}
 
-            {/* Success Message */}
             {status === "success" && (
                 <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700 dark:border-emerald-900/30 dark:bg-emerald-950/20 dark:text-emerald-400">
                     ✓ Tài liệu được upload thành công! Đang chờ Admin duyệt.
                 </div>
             )}
 
-            {/* Submit Button */}
             <SubmitButton disabled={status === "uploading" || !file} type="submit">
                 {status === "uploading" ? "Đang upload..." : status === "success" ? "✓ Thành công" : "Đăng bài"}
             </SubmitButton>

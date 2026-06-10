@@ -3,6 +3,7 @@ import { UpgradePlans } from "@/components/upgrade-plans";
 
 export const metadata: Metadata = { title: "Gói Premium | HọcLiệu" };
 
+/** Trang bảng giá premium. */
 export default function PricingPage() {
   return <UpgradePlans authenticated={false} />;
 }

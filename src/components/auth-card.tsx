@@ -8,6 +8,7 @@ type AuthCardProps = {
   footnote?: React.ReactNode;
 };
 
+/** Khung giao diện dùng chung cho các màn hình xác thực. */
 export function AuthCard({ title, description, children, footnote }: AuthCardProps) {
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950">

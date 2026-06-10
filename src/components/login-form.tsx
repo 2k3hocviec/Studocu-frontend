@@ -15,11 +15,12 @@ type LoginResponse = {
 };
 
 type TokenPayload = {
-  role?: "USER" | "ADMIN" | "MODERATOR";
+  role?: "USER" | "ADMIN";
 };
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
 
+/** Đọc role từ access token để điều hướng sau đăng nhập. */
 function readRole(accessToken: string) {
   try {
     const segment = accessToken.split(".")[1];
@@ -32,6 +33,7 @@ function readRole(accessToken: string) {
   }
 }
 
+/** Form đăng nhập và lưu phiên người dùng vào localStorage. */
 export function LoginForm() {
   const router = useRouter();
   const [error, setError] = useState("");

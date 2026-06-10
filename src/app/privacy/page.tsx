@@ -3,6 +3,7 @@ import { PublicInfoPage } from "@/components/public-info-page";
 
 export const metadata: Metadata = { title: "Bảo mật | HọcLiệu" };
 
+/** Trang chính sách quyền riêng tư. */
 export default function PrivacyPage() {
   return (
     <PublicInfoPage

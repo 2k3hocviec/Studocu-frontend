@@ -3,6 +3,7 @@ import { PublicInfoPage } from "@/components/public-info-page";
 
 export const metadata: Metadata = { title: "Trợ giúp | HọcLiệu" };
 
+/** Trang trợ giúp tĩnh. */
 export default function HelpPage() {
   return (
     <PublicInfoPage

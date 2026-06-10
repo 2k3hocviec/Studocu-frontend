@@ -48,6 +48,7 @@ const documentTypeStyles: Record<DocumentType, string> = {
   OTHER: "bg-slate-100 text-slate-700",
 };
 
+/** Kiểm tra query param có phải loại tài liệu hợp lệ hay không. */
 function isDocumentType(value: string | null): value is DocumentType {
   return value === "LECTURE" || value === "EXAM" || value === "NOTE" || value === "ASSIGNMENT" || value === "OTHER";
 }
@@ -56,6 +57,7 @@ type UserDocumentBrowserProps = {
   authenticated?: boolean;
 };
 
+/** Trình duyệt tài liệu công khai với tìm kiếm, lọc và phân trang. */
 export function UserDocumentBrowser({ authenticated = true }: UserDocumentBrowserProps) {
   const searchParams = useSearchParams();
   const queryType = searchParams.get("type");
@@ -164,6 +166,7 @@ export function UserDocumentBrowser({ authenticated = true }: UserDocumentBrowse
     [selectedSchool, subjects],
   );
 
+  /** Xóa toàn bộ bộ lọc đang chọn. */
   function clearFilters() {
     setTitle("");
     setSubject("");
@@ -172,6 +175,7 @@ export function UserDocumentBrowser({ authenticated = true }: UserDocumentBrowse
     setAppliedFilters({ title: "", subject: "", school: "", type: allValue });
   }
 
+  /** Áp dụng bộ lọc hiện tại lên URL query. */
   function applyFilters() {
     setAppliedFilters({
       title,
@@ -352,6 +356,7 @@ type FilterSearchProps = {
   onChange: (value: string) => void;
 };
 
+/** Ô tìm kiếm có datalist cho trường học hoặc môn học. */
 function FilterSearch({ label, value, options, placeholder, listId, onChange }: FilterSearchProps) {
   return (
     <label className="text-sm font-semibold text-slate-800">

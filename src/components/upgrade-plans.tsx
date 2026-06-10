@@ -68,25 +68,30 @@ const planBenefits: Record<PlanPosition, { label: string; title: string; descrip
   },
 };
 
+/** Format giá tiền gói premium. */
 function formatMoney(value: number) {
   return new Intl.NumberFormat("vi-VN").format(value);
 }
 
+/** Format ngày hết hạn premium. */
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("vi-VN").format(new Date(value));
 }
 
+/** Xác định vị trí card gói để styling nổi bật. */
 function planPosition(index: number, total: number): PlanPosition {
   if (total <= 1 || index === 0) return "short";
   if (index === total - 1) return "long";
   return "middle";
 }
 
+/** Tính giá trung bình mỗi ngày của gói. */
 function dailyPrice(plan: Plan) {
   if (!plan.durationDays) return plan.price;
   return Math.round(plan.price / plan.durationDays);
 }
 
+/** Gọi API cần xác thực và chuẩn hóa lỗi. */
 async function request<T>(endpoint: string, accessToken: string, init?: RequestInit) {
   const response = await fetch(`${apiUrl}${endpoint}`, {
     ...init,
@@ -105,6 +110,7 @@ async function request<T>(endpoint: string, accessToken: string, init?: RequestI
   return result.data;
 }
 
+/** Gọi API public và chuẩn hóa response. */
 async function publicRequest<T>(endpoint: string) {
   const response = await fetch(`${apiUrl}${endpoint}`);
   const result = (await response.json()) as ApiResponse<T>;
@@ -120,6 +126,7 @@ type UpgradePlansProps = {
   authenticated?: boolean;
 };
 
+/** Hiển thị danh sách gói premium và xử lý thanh toán. */
 export function UpgradePlans({ authenticated = true }: UpgradePlansProps) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);

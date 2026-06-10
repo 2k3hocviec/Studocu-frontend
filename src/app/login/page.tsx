@@ -9,6 +9,7 @@ type LoginPageProps = {
   searchParams: Promise<{ status?: string }>;
 };
 
+/** Trang đăng nhập và hiển thị thông báo sau các luồng xác thực. */
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
   const notice =

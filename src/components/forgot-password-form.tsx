@@ -11,6 +11,7 @@ type ApiResponse = {
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
 
+/** Form gửi yêu cầu OTP để đặt lại mật khẩu. */
 export function ForgotPasswordForm() {
   const router = useRouter();
   const [error, setError] = useState("");

@@ -9,6 +9,7 @@ type VerifyPageProps = {
   searchParams: Promise<{ flow?: string; email?: string }>;
 };
 
+/** Trang xác thực OTP cho đăng ký hoặc đặt lại mật khẩu. */
 export default async function VerifyOtpPage({ searchParams }: VerifyPageProps) {
   const params = await searchParams;
   const resetPassword = params.flow === "reset";

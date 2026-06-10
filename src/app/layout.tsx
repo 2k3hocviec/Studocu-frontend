@@ -23,6 +23,7 @@ export const metadata: Metadata = {
   description: "Nền tảng đăng tải và chia sẻ tài liệu học tập trực tuyến.",
 };
 
+/** Root layout gắn font, theme và shell HTML chung. */
 export default function RootLayout({
   children,
 }: Readonly<{

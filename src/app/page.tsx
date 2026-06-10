@@ -30,6 +30,7 @@ const stats = [
   { value: "4.9/5", label: "Đánh giá người dùng" },
 ];
 
+/** Icon minh họa nhóm tài liệu trên trang chủ. */
 function DocumentIcon({ name }: { name: (typeof documentGroups)[number]["icon"] }) {
   if (name === "cap") {
     return (
@@ -55,6 +56,7 @@ function DocumentIcon({ name }: { name: (typeof documentGroups)[number]["icon"] 
   );
 }
 
+/** SVG trang trí hình sách cho hero. */
 function BookDecoration({ className, variant = "closed" }: { className: string; variant?: "closed" | "open" }) {
   if (variant === "open") {
     return (
@@ -76,6 +78,7 @@ function BookDecoration({ className, variant = "closed" }: { className: string; 
   );
 }
 
+/** Cụm hình trang trí nền của trang chủ. */
 function HomeDecorations() {
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -89,6 +92,7 @@ function HomeDecorations() {
   );
 }
 
+/** Trang chủ giới thiệu và dẫn người dùng tới thư viện tài liệu. */
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-[#f8faf9] text-[#121b17] dark:bg-slate-950 dark:text-slate-100">

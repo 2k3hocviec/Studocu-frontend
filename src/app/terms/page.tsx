@@ -3,6 +3,7 @@ import { PublicInfoPage } from "@/components/public-info-page";
 
 export const metadata: Metadata = { title: "Điều khoản | HọcLiệu" };
 
+/** Trang điều khoản sử dụng. */
 export default function TermsPage() {
   return (
     <PublicInfoPage

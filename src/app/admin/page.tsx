@@ -51,12 +51,12 @@ type DashboardResponse = {
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
 
+/** Trang dashboard thống kê cho admin. */
 export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [stats, setStats] = useState<DashboardResponse["data"] | null>(null);
   
-  // Trạng thái bộ lọc ngày
   const [startDate, setStartDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() - 30);
@@ -64,10 +64,8 @@ export default function AdminDashboardPage() {
   });
   const [endDate, setEndDate] = useState(() => new Date().toISOString().split("T")[0]);
   
-  // Chế độ hiển thị biểu đồ đang chọn
   const [chartMode, setChartMode] = useState<"revenue" | "users" | "documents" | "downloads">("revenue");
   
-  // Điểm đang được hover trên biểu đồ
   const [hoveredPoint, setHoveredPoint] = useState<{ x: number; y: number; label: string; val: string } | null>(null);
 
   const fetchStats = async () => {
@@ -91,6 +89,7 @@ export default function AdminDashboardPage() {
     fetchStats();
   }, []);
 
+  /** Gửi bộ lọc ngày và tải lại dữ liệu dashboard. */
   const handleFilterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     fetchStats();
@@ -120,7 +119,7 @@ export default function AdminDashboardPage() {
 
   const { overview, timeSeries, topCharts } = stats;
 
-  // Xác định mảng dữ liệu cho biểu đồ hiện tại
+  // Chọn dữ liệu theo loại biểu đồ đang xem.
   let currentChartData: { date: string; val: number }[] = [];
   if (chartMode === "revenue") {
     currentChartData = timeSeries.revenueByDay.map(d => ({ date: d.date, val: d.revenue ?? 0 }));
@@ -132,36 +131,30 @@ export default function AdminDashboardPage() {
     currentChartData = timeSeries.downloadsByDay.map(d => ({ date: d.date, val: d.count ?? 0 }));
   }
 
-  // Tự tạo biểu đồ SVG tuyến tính
   const svgWidth = 800;
   const svgHeight = 250;
   const paddingX = 60;
   const paddingY = 30;
 
-  // Tìm min, max để làm thang chia tỉ lệ
   const maxVal = Math.max(...currentChartData.map(d => d.val), 10);
   const minVal = 0;
 
-  // Điểm vẽ biểu đồ
   const points = currentChartData.map((d, index) => {
     const x = paddingX + (index / Math.max(currentChartData.length - 1, 1)) * (svgWidth - paddingX * 2);
     const y = svgHeight - paddingY - ((d.val - minVal) / (maxVal - minVal)) * (svgHeight - paddingY * 2);
     return { x, y, date: d.date, val: d.val };
   });
 
-  // Tạo đường dẫn vẽ cho biểu đồ đường
   const pathD = points.reduce((acc, p, index) => {
     return index === 0 ? `M ${p.x} ${p.y}` : `${acc} L ${p.x} ${p.y}`;
   }, "");
 
-  // Tạo vùng tô gradient màu ở dưới đường biểu đồ
   const areaD = points.length > 0 
     ? `${pathD} L ${points[points.length - 1].x} ${svgHeight - paddingY} L ${points[0].x} ${svgHeight - paddingY} Z`
     : "";
 
   return (
     <div className="min-w-0 space-y-6 animate-fadeIn xl:space-y-8">
-      {/* Date Filter & Options */}
       <div className="flex flex-col justify-between gap-4 rounded-2xl bg-white p-4 shadow-sm dark:bg-slate-900 sm:p-6 lg:flex-row lg:items-center">
         <form onSubmit={handleFilterSubmit} className="grid w-full gap-4 sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-end">
           <div>
@@ -191,9 +184,7 @@ export default function AdminDashboardPage() {
         </form>
       </div>
 
-      {/* Cards Overview Stats */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {/* User Card */}
         <div className="rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-900 border border-slate-100 dark:border-slate-800/40">
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-bold text-slate-400 uppercase tracking-wider">Tổng thành viên</span>
@@ -207,7 +198,6 @@ export default function AdminDashboardPage() {
           <p className="mt-1 text-xs text-slate-400">Người dùng đã đăng ký</p>
         </div>
 
-        {/* Document Card */}
         <div className="rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-900 border border-slate-100 dark:border-slate-800/40">
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-bold text-slate-400 uppercase tracking-wider">Tài liệu đã duyệt</span>
@@ -221,7 +211,6 @@ export default function AdminDashboardPage() {
           <p className="mt-1 text-xs text-slate-400">Tài liệu hiển thị công khai</p>
         </div>
 
-        {/* Download Card */}
         <div className="rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-900 border border-slate-100 dark:border-slate-800/40">
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-bold text-slate-400 uppercase tracking-wider">Lượt tải về</span>
@@ -235,7 +224,6 @@ export default function AdminDashboardPage() {
           <p className="mt-1 text-xs text-slate-400">Tổng số lượt tải tài liệu</p>
         </div>
 
-        {/* Revenue Card */}
         <div className="rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-900 border border-slate-100 dark:border-slate-800/40">
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-bold text-slate-400 uppercase tracking-wider">Doanh thu</span>
@@ -252,14 +240,12 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Charts Section */}
       <div className="min-w-0 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm dark:border-slate-800/40 dark:bg-slate-900 sm:p-6">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
             <h3 className="text-lg font-bold">Biểu đồ sự tăng trưởng</h3>
             <p className="text-xs text-slate-400">Di chuột vào các điểm mốc trên đường vẽ để xem chi tiết</p>
           </div>
-          {/* Chart mode selection tabs */}
           <div className="flex rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
             {(["revenue", "users", "documents", "downloads"] as const).map((mode) => (
               <button
@@ -283,7 +269,6 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* SVG Chart area */}
         <div className="relative">
           {currentChartData.length === 0 ? (
             <div className="flex h-60 items-center justify-center border-2 border-dashed border-slate-200 rounded-xl dark:border-slate-800">
@@ -299,7 +284,6 @@ export default function AdminDashboardPage() {
                 </linearGradient>
               </defs>
 
-              {/* Grid Lines */}
               {[0, 0.25, 0.5, 0.75, 1].map((ratio, index) => {
                 const y = paddingY + ratio * (svgHeight - paddingY * 2);
                 const gridVal = Math.round(maxVal - ratio * (maxVal - minVal));
@@ -326,10 +310,8 @@ export default function AdminDashboardPage() {
                 );
               })}
 
-              {/* Area Under Curve */}
               {areaD && <path d={areaD} fill="url(#chartGradient)" />}
 
-              {/* Smooth Line Chart */}
               {pathD && (
                 <path
                   d={pathD}
@@ -341,7 +323,6 @@ export default function AdminDashboardPage() {
                 />
               )}
 
-              {/* Interactive Points */}
               {points.map((p, index) => (
                 <circle
                   key={index}
@@ -361,7 +342,7 @@ export default function AdminDashboardPage() {
                 />
               ))}
 
-              {/* Axis Label Dates (Only show first, middle, last to avoid overlap) */}
+              {/* Chỉ hiện mốc đầu, giữa và cuối để tránh chồng chữ. */}
               {points.length > 0 && (
                 <>
                   <text x={points[0].x} y={svgHeight - 10} textAnchor="middle" className="fill-slate-400 text-[10px] font-semibold">
@@ -393,7 +374,6 @@ export default function AdminDashboardPage() {
             </div>
           )}
 
-          {/* Interactive Tooltip Card overlay */}
           {hoveredPoint && (
             <div
               className="absolute pointer-events-none rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-bold text-white shadow-lg backdrop-blur-sm transition-all duration-75"
@@ -410,9 +390,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Top Tables (Popular Documents & Schools) */}
       <div className="grid gap-8 lg:grid-cols-2">
-        {/* Top Documents table */}
         <div className="rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-900 border border-slate-100 dark:border-slate-800/40">
           <div className="mb-4">
             <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">Tài liệu phổ biến nhất</h3>
@@ -444,7 +422,6 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Top Schools table */}
         <div className="rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-900 border border-slate-100 dark:border-slate-800/40">
           <div className="mb-4">
             <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">Trường đại học sôi nổi</h3>

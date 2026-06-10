@@ -17,6 +17,7 @@ interface PDFViewerProps {
     onDownload?: () => void;
 }
 
+/** Trình xem PDF đơn giản với phân trang, zoom và tải xuống. */
 export function PDFViewer({ fileUrl, totalPages = 0, isPreview = false, onDownload }: PDFViewerProps) {
     const [isLoading, setIsLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
@@ -80,9 +81,7 @@ export function PDFViewer({ fileUrl, totalPages = 0, isPreview = false, onDownlo
 
     return (
         <div className="space-y-4">
-            {/* Thanh điều khiển */}
             <div className="flex flex-wrap items-center justify-between gap-4 bg-white dark:bg-white/5 p-4 rounded-lg border border-slate-200 dark:border-white/10">
-                {/* Điều hướng trang */}
                 <div className="flex items-center gap-2">
                     <button
                         onClick={handlePrevPage}
@@ -115,7 +114,6 @@ export function PDFViewer({ fileUrl, totalPages = 0, isPreview = false, onDownlo
                     </button>
                 </div>
 
-                {/* Điều khiển thu phóng */}
                 <div className="flex items-center gap-2">
                     <button
                         onClick={handleZoomOut}
@@ -142,7 +140,6 @@ export function PDFViewer({ fileUrl, totalPages = 0, isPreview = false, onDownlo
                     </button>
                 </div>
 
-                {/* Nút tải xuống */}
                 <a
                     href={fileUrl}
                     download
@@ -155,7 +152,6 @@ export function PDFViewer({ fileUrl, totalPages = 0, isPreview = false, onDownlo
                 </a>
             </div>
 
-            {/* Trình xem PDF */}
             <div className="bg-white dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10 overflow-hidden">
                 <div className="overflow-auto bg-slate-100 dark:bg-slate-900 p-4 max-h-[600px] flex justify-center">
                     <Document
@@ -198,7 +194,6 @@ export function PDFViewer({ fileUrl, totalPages = 0, isPreview = false, onDownlo
                 </div>
             </div>
 
-            {/* Thông tin */}
             {isPreview && (
                 <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 rounded-lg p-4">
                     <p className="text-sm text-blue-800 dark:text-blue-300">

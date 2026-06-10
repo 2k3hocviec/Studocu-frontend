@@ -3,6 +3,7 @@ import { PublicInfoPage } from "@/components/public-info-page";
 
 export const metadata: Metadata = { title: "Liên hệ | HọcLiệu" };
 
+/** Trang liên hệ tĩnh. */
 export default function ContactPage() {
   return (
     <PublicInfoPage

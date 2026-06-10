@@ -11,6 +11,7 @@ type ApiResponse = {
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
 
+/** Form đăng ký tài khoản và chuyển sang bước xác thực OTP. */
 export function RegisterForm() {
   const router = useRouter();
   const [error, setError] = useState("");

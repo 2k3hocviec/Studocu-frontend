@@ -3,6 +3,7 @@ import { PublicInfoPage } from "@/components/public-info-page";
 
 export const metadata: Metadata = { title: "Blog tri thức | HọcLiệu" };
 
+/** Trang blog tĩnh. */
 export default function BlogPage() {
   return (
     <PublicInfoPage

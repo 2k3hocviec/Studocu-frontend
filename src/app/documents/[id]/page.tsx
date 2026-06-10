@@ -57,6 +57,7 @@ type UnlockCreditResponse = {
   charged?: boolean;
 };
 
+/** Trang chi tiết tài liệu, preview, reaction, báo cáo và mở khóa. */
 export default function DocumentPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
@@ -357,6 +358,7 @@ export default function DocumentPage() {
   );
 }
 
+/** Banner nhắc user nâng cấp hoặc dùng credit để xem đầy đủ. */
 function PaywallBanner({
   authenticated,
   accessInfo,
@@ -397,6 +399,7 @@ function PaywallBanner({
   );
 }
 
+/** Cụm nút like/dislike cho tài liệu. */
 function ReactionControls({
   canReact,
   reactionInfo,
@@ -442,6 +445,7 @@ function ReactionControls({
   );
 }
 
+/** Icon ngón tay dùng cho nút reaction. */
 function ThumbIcon({ direction }: { direction: "up" | "down" }) {
   return (
     <svg

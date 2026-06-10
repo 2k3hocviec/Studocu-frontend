@@ -2,6 +2,7 @@
 
 import { useTheme } from "@/components/theme-provider";
 
+/** Nút chuyển đổi sáng/tối. */
 export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";

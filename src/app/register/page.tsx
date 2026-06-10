@@ -5,6 +5,7 @@ import { RegisterForm } from "@/components/register-form";
 
 export const metadata: Metadata = { title: "Đăng ký | HọcLiệu" };
 
+/** Trang đăng ký tài khoản. */
 export default function RegisterPage() {
   return (
     <AuthCard

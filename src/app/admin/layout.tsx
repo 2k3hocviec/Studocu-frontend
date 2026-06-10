@@ -9,10 +9,11 @@ import { getValidAccessToken } from "@/utils/api";
 
 type TokenPayload = {
   email?: string;
-  role?: "USER" | "ADMIN" | "MODERATOR";
+  role?: "USER" | "ADMIN";
   userId?: number;
 };
 
+/** Đọc payload cơ bản từ access token để kiểm tra quyền admin. */
 function readTokenPayload(accessToken: string): TokenPayload | null {
   try {
     const segment = accessToken.split(".")[1];
@@ -25,6 +26,7 @@ function readTokenPayload(accessToken: string): TokenPayload | null {
   }
 }
 
+/** Layout bảo vệ và điều hướng khu vực admin. */
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -42,7 +44,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       }
 
       const payload = readTokenPayload(token);
-      if (!payload || (payload.role !== "ADMIN" && payload.role !== "MODERATOR")) {
+      if (!payload || payload.role !== "ADMIN") {
         router.push("/login");
         return;
       }
@@ -54,6 +56,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     checkAuth();
   }, [router]);
 
+  /** Xóa phiên đăng nhập và đưa user về trang login. */
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
@@ -142,7 +145,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           className="fixed inset-0 z-30 bg-slate-950/50 backdrop-blur-sm lg:hidden"
         />
       ) : null}
-      {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-40 flex w-72 max-w-[86vw] flex-col border-r border-slate-200 bg-white px-4 py-5 shadow-2xl transition-transform duration-200 dark:border-slate-800 dark:bg-slate-900 lg:w-60 lg:translate-x-0 lg:shadow-none xl:w-64 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="mb-8 px-2">
           <Link href="/" className="flex items-center space-x-2">
@@ -152,7 +154,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </Link>
         </div>
 
-        {/* Navigation Menu */}
         <nav className="flex-1 space-y-1">
           {menuItems.map((item) => {
             const isActive = pathname === item.path;
@@ -173,7 +174,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           })}
         </nav>
 
-        {/* Bottom Profile Info & Logout */}
         <div className="mt-auto border-t border-slate-100 pt-4 dark:border-slate-800">
           <div className="mb-4 flex items-center space-x-3 px-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400">
@@ -198,9 +198,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      {/* Main Content Space */}
       <div className="min-w-0 lg:pl-60 xl:pl-64">
-        {/* Top Header Bar */}
         <header className="sticky top-0 z-10 flex h-16 min-w-0 items-center justify-between gap-3 border-b border-slate-200 bg-white/85 px-4 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/85 sm:px-6 xl:px-8">
           <button
             type="button"
@@ -225,7 +223,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </header>
 
-        {/* Content Area */}
         <main className="min-w-0 p-4 sm:p-6 xl:p-8">{children}</main>
       </div>
     </div>

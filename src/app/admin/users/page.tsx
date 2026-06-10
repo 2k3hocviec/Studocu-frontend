@@ -9,7 +9,7 @@ type UserItem = {
   email: string;
   avatarUrl?: string | null;
   status: "PENDING_VERIFY" | "ACTIVE" | "BANNED";
-  role: "USER" | "ADMIN" | "MODERATOR";
+  role: "USER" | "ADMIN";
   creditBalance: number;
   createdAt: string;
 };
@@ -30,6 +30,7 @@ type APIResponse = {
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
 
+/** Trang quản lý người dùng trong admin. */
 export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<UserItem[]>([]);
@@ -40,9 +41,10 @@ export default function AdminUsersPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   
-  // Trạng thái thông báo nhanh
+  // Thông báo nhanh cho thao tác admin.
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
+  /** Hiển thị toast trong thời gian ngắn. */
   const showToast = (message: string, type: "success" | "error" = "success") => {
     setToast({ message, type });
     setTimeout(() => {
@@ -69,7 +71,7 @@ export default function AdminUsersPage() {
     }
   };
 
-  // Giảm tần suất tìm kiếm khi người dùng đang nhập
+  // Giảm tần suất tìm kiếm khi người dùng đang nhập.
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery);
@@ -77,7 +79,7 @@ export default function AdminUsersPage() {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Reset page to 1 khi đổi bộ lọc tìm kiếm
+  // Đưa về trang đầu khi đổi bộ lọc.
   useEffect(() => {
     setCurrentPage(1);
   }, [debouncedSearch]);
@@ -86,7 +88,7 @@ export default function AdminUsersPage() {
     fetchUsers(debouncedSearch);
   }, [currentPage, debouncedSearch]);
 
-  // Cập nhật trạng thái người dùng (Ban / Unban)
+  // Cập nhật trạng thái người dùng.
   const handleUpdateStatus = async (id: number, newStatus: UserItem["status"]) => {
     const actionText = newStatus === "BANNED" ? "Khóa (Ban)" : "Kích hoạt lại (Unban)";
     if (!confirm(`Bạn có chắc chắn muốn ${actionText} người dùng này không?`)) return;
@@ -111,6 +113,7 @@ export default function AdminUsersPage() {
     }
   };
 
+  /** Trả badge trạng thái tài khoản. */
   const getStatusBadge = (status: UserItem["status"]) => {
     switch (status) {
       case "ACTIVE":
@@ -122,12 +125,11 @@ export default function AdminUsersPage() {
     }
   };
 
+  /** Trả badge vai trò người dùng. */
   const getRoleBadge = (role: UserItem["role"]) => {
     switch (role) {
       case "ADMIN":
         return <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-extrabold text-blue-700 dark:bg-blue-950/40 dark:text-blue-400">ADMIN</span>;
-      case "MODERATOR":
-        return <span className="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-extrabold text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400">MODERATOR</span>;
       default:
         return <span className="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-[10px] font-extrabold text-slate-500 dark:bg-slate-800/40 dark:text-slate-400">USER</span>;
     }
@@ -135,7 +137,6 @@ export default function AdminUsersPage() {
 
   return (
     <div className="min-w-0 space-y-6">
-      {/* Search Filter Header */}
       <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm animate-fadeIn dark:border-slate-800/40 dark:bg-slate-900 sm:p-6">
         <div className="flex w-full gap-2 lg:max-w-md">
           <div className="relative flex-1">
@@ -155,7 +156,6 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      {/* Users table */}
       <div className="overflow-hidden rounded-2xl bg-white shadow-sm dark:bg-slate-900 border border-slate-100 dark:border-slate-800/40">
         {loading ? (
           <div className="flex h-60 items-center justify-center">
@@ -230,7 +230,6 @@ export default function AdminUsersPage() {
           </div>
         )}
 
-        {/* Pagination Footer */}
         {meta && meta.totalPages > 1 && (
           <div className="flex flex-col gap-3 border-t border-slate-100 px-4 py-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <span className="text-xs font-semibold text-slate-400">
@@ -256,7 +255,6 @@ export default function AdminUsersPage() {
         )}
       </div>
 
-      {/* Toast Notification */}
       {toast && (
         <div className={`fixed bottom-5 right-5 z-50 flex items-center space-x-2 rounded-xl px-5 py-3 shadow-lg transition-all duration-300 animate-slideIn ${
           toast.type === "success" 
