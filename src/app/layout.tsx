@@ -15,6 +15,10 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    shortcut: ["/icon.svg"],
+  },
   title: "HọcLiệu - Nền tảng tài liệu trực tuyến",
   description: "Nền tảng đăng tải và chia sẻ tài liệu học tập trực tuyến.",
 };

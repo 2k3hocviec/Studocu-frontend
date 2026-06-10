@@ -1,0 +1,18 @@
+import { NextResponse } from "next/server";
+
+const bookIconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#ecfdf5"/>
+  <path d="M13 17.5c0-3.6 2.9-6.5 6.5-6.5H29c2.6 0 5.1.8 7.2 2.4 2.1-1.6 4.6-2.4 7.2-2.4H51c1.7 0 3 1.3 3 3v36.8c0 1.5-1.2 2.7-2.7 2.7h-8.5c-2.4 0-4.7.7-6.6 2.1-1.9-1.4-4.2-2.1-6.6-2.1H18.5c-3 0-5.5-2.5-5.5-5.5V17.5Z" fill="#059669"/>
+  <path d="M19.5 16H29c2.2 0 4.1.7 5.7 2v30.7c-1.7-.9-3.6-1.3-5.7-1.3h-9.5c-.9 0-1.5-.7-1.5-1.5V17.5c0-.8.6-1.5 1.5-1.5Z" fill="#ffffff"/>
+  <path d="M37.8 18c1.6-1.3 3.5-2 5.7-2H49v31.4h-5.5c-2.1 0-4 .4-5.7 1.3V18Z" fill="#d1fae5"/>
+  <path d="M23 25h7.8M23 31h7.8M23 37h6M42 25h4.5M42 31h4.5M42 37h4.5" stroke="#047857" stroke-width="3" stroke-linecap="round"/>
+</svg>`;
+
+export function GET() {
+  return new NextResponse(bookIconSvg, {
+    headers: {
+      "Cache-Control": "public, max-age=0, must-revalidate",
+      "Content-Type": "image/svg+xml",
+    },
+  });
+}

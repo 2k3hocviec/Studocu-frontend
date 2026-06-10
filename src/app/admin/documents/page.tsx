@@ -471,7 +471,7 @@ export default function AdminDocumentsPage() {
 
       {/* Reject Dialog Modal */}
       {rejectingDocId && (
-        <div className="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
           <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-xl animate-scaleUp dark:bg-slate-900">
             <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">Từ chối duyệt tài liệu</h3>
             <p className="text-xs text-slate-400 mt-1">Vui lòng nhập lý do từ chối để thông báo cho người dùng.</p>
@@ -546,7 +546,7 @@ function DocumentDetailModal({
   onDelete: (id: number) => void;
 }) {
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/40 p-3 backdrop-blur-sm sm:p-5">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-3 backdrop-blur-sm sm:p-5">
       <aside className="flex h-[94vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900">
         <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-800">
           <div>
