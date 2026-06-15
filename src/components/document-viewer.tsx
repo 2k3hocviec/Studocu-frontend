@@ -21,7 +21,11 @@ interface DocumentViewerProps {
 
 /** Chọn trình hiển thị phù hợp cho các file tài liệu PDF, DOCX và PPTX. */
 export function DocumentViewer({ fileUrl, fileType, totalPages, isPreview = false, authToken, downloadFileName, onDownload, fallback, apiBase, documentId, previews }: DocumentViewerProps) {
-  const { objectUrl, isLoading, error } = useProtectedFile(fileUrl, authToken, !isPreview);
+  const fullViewUrl =
+    !isPreview && fileType === "PPTX" && apiBase && documentId !== undefined
+      ? `${apiBase}/documents/${documentId}/file/pdf`
+      : fileUrl;
+  const { objectUrl, isLoading, error } = useProtectedFile(fullViewUrl, authToken, !isPreview);
   const viewerUrl = isPreview ? fileUrl : objectUrl;
 
   if (!isPreview && isLoading) {
@@ -48,12 +52,9 @@ export function DocumentViewer({ fileUrl, fileType, totalPages, isPreview = fals
     if (isPreview) {
       return <PPTXPreviewGallery previews={previews} totalPages={totalPages} />;
     }
-    const pdfUrl = apiBase && documentId !== undefined
-      ? `${apiBase}/documents/${documentId}/file/pdf`
-      : viewerUrl;
     return (
       <PDFPageViewer
-        fileUrl={pdfUrl}
+        fileUrl={viewerUrl ?? fullViewUrl}
         totalPages={totalPages}
         downloadFileName={downloadFileName?.replace(/\.pptx$/i, ".pdf")}
         onDownload={onDownload}
