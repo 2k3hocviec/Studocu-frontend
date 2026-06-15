@@ -9,6 +9,11 @@ import { ThemeToggle } from "@/components/theme-toggle";
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
 
 type SiteHeaderProps = {
+  /**
+   * Trạng thái đăng nhập được quyết định bởi component cha. Mặc định là `undefined` —
+   * header sẽ tự đọc `accessToken` từ `localStorage` để đảm bảo UI đồng bộ sau khi
+   * refresh trang hoặc mở tab mới.
+   */
   authenticated?: boolean;
 };
 
@@ -153,11 +158,26 @@ function DigitalLibraryLogo() {
 }
 
 /** Header điều hướng chính của website. */
-export function SiteHeader({ authenticated = false }: SiteHeaderProps) {
+export function SiteHeader({ authenticated }: SiteHeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hasPremium, setHasPremium] = useState(false);
+  const [hasToken, setHasToken] = useState(Boolean(authenticated));
+
+  useEffect(() => {
+    if (authenticated !== undefined) {
+      setHasToken(Boolean(authenticated));
+      return;
+    }
+    setHasToken(Boolean(localStorage.getItem("accessToken")));
+
+    function onStorage() {
+      setHasToken(Boolean(localStorage.getItem("accessToken")));
+    }
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [authenticated]);
 
   const publicNavItems = [
     { href: "/", label: "Trang chủ", active: pathname === "/" },
@@ -172,7 +192,7 @@ export function SiteHeader({ authenticated = false }: SiteHeaderProps) {
       : "py-5 transition hover:text-[#006d45] dark:hover:text-emerald-400";
 
   useEffect(() => {
-    if (!authenticated) {
+    if (!hasToken) {
       setHasPremium(false);
       return;
     }
@@ -199,7 +219,7 @@ export function SiteHeader({ authenticated = false }: SiteHeaderProps) {
     return () => {
       cancelled = true;
     };
-  }, [authenticated]);
+  }, [hasToken]);
 
   async function handleLogout() {
     const refreshToken = localStorage.getItem("refreshToken");
@@ -217,6 +237,7 @@ export function SiteHeader({ authenticated = false }: SiteHeaderProps) {
     } finally {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
+      setHasToken(false);
       setHasPremium(false);
       setIsMenuOpen(false);
       router.replace("/login");
@@ -226,12 +247,12 @@ export function SiteHeader({ authenticated = false }: SiteHeaderProps) {
   return (
     <header className="relative z-30 border-b border-slate-200 bg-white dark:border-white/10 dark:bg-slate-950">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-5 px-6">
-        <Link href={authenticated ? "/user" : "/"} className="flex shrink-0 items-center gap-2">
+        <Link href={hasToken ? "/user" : "/"} className="flex shrink-0 items-center gap-2">
           <DigitalLibraryLogo />
           {hasPremium ? <PremiumBadge compact /> : null}
         </Link>
 
-        {authenticated ? (
+        {hasToken ? (
           <nav className="hidden items-center gap-3 md:flex">
             <Link href="/user/upload" className="app-button-primary app-button-compact">
               + Đăng bài
@@ -289,7 +310,7 @@ export function SiteHeader({ authenticated = false }: SiteHeaderProps) {
             <div className="flex justify-end">
               <ThemeToggle />
             </div>
-            {authenticated ? (
+            {hasToken ? (
               <>
                 <Link href="/user/upload" onClick={() => setIsMenuOpen(false)} className="app-button-primary w-full">
                   + Đăng bài
