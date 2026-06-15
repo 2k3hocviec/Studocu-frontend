@@ -126,16 +126,14 @@ function ViewerLoadingState() {
       {[0, 1, 2].map((i) => (
         <div
           key={i}
-          className="mx-auto h-[640px] max-w-3xl animate-pulse rounded-lg bg-slate-200/80 shadow-sm dark:bg-slate-800/60"
-        />
+          className="relative mx-auto h-[640px] max-w-3xl animate-pulse rounded-lg bg-slate-200/80 shadow-sm dark:bg-slate-800/60"
+        >
+          <span
+            className="absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 animate-spin rounded-full border-2 border-slate-300 border-t-emerald-500 dark:border-slate-600 dark:border-t-emerald-400"
+            aria-hidden="true"
+          />
+        </div>
       ))}
-      <div className="flex items-center justify-center gap-3 pt-2 text-sm text-slate-500 dark:text-slate-400">
-        <span
-          className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-emerald-500 dark:border-slate-600 dark:border-t-emerald-400"
-          aria-hidden="true"
-        />
-        <span>Đang chuẩn bị tài liệu…</span>
-      </div>
     </div>
   );
 }
