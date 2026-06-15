@@ -29,7 +29,7 @@ export function DocumentViewer({ fileUrl, fileType, totalPages, isPreview = fals
   const viewerUrl = isPreview ? fileUrl : objectUrl;
 
   if (!isPreview && isLoading) {
-    return <ViewerMessage tone="neutral" title="Đang mở tài liệu..." description="Hệ thống đang tải file qua endpoint nội bộ." />;
+    return <ViewerLoadingState />;
   }
 
   if (!isPreview && error && fallback) {
@@ -119,7 +119,28 @@ function useProtectedFile(fileUrl: string, authToken: string | null | undefined,
   return { objectUrl, isLoading, error };
 }
 
-/** Hiển thị trạng thái trống, đang tải hoặc lỗi dùng lại trong khung xem tài liệu. */
+/** Hiển thị trạng thái đang tải với hiệu ứng khung trang PDF mô phỏng và spinner. */
+function ViewerLoadingState() {
+  return (
+    <div className="space-y-4" role="status" aria-live="polite" aria-label="Đang tải tài liệu">
+      {[0, 1, 2].map((i) => (
+        <div
+          key={i}
+          className="mx-auto h-[640px] max-w-3xl animate-pulse rounded-lg bg-slate-200/80 shadow-sm dark:bg-slate-800/60"
+        />
+      ))}
+      <div className="flex items-center justify-center gap-3 pt-2 text-sm text-slate-500 dark:text-slate-400">
+        <span
+          className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-emerald-500 dark:border-slate-600 dark:border-t-emerald-400"
+          aria-hidden="true"
+        />
+        <span>Đang chuẩn bị tài liệu…</span>
+      </div>
+    </div>
+  );
+}
+
+/** Hiển thị trạng thái trống hoặc lỗi dùng lại trong khung xem tài liệu. */
 function ViewerMessage({ title, description, tone }: { title: string; description: string; tone: "neutral" | "error" }) {
   const classes = tone === "error"
     ? "border-red-200 bg-red-50 text-red-800 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-200"
