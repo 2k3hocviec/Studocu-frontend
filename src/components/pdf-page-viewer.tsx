@@ -1,6 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import * as pdfjs from "pdfjs-dist";
+import "pdfjs-dist/build/pdf.worker.mjs";
+
+if (typeof window !== "undefined") {
+    pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+        "pdfjs-dist/build/pdf.worker.mjs",
+        import.meta.url,
+    ).toString();
+}
 
 type PdfDocument = {
     numPages: number;
@@ -38,12 +47,6 @@ export function PDFPageViewer({ fileUrl, totalPages = 0, downloadFileName, onDow
             setPdfDocument(null);
 
             try {
-                const pdfjs = await import("pdfjs-dist/build/pdf.mjs");
-                pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-                    "pdfjs-dist/build/pdf.worker.mjs",
-                    import.meta.url,
-                ).toString();
-
                 const response = await fetch(fileUrl);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.arrayBuffer();
@@ -100,10 +103,50 @@ export function PDFPageViewer({ fileUrl, totalPages = 0, downloadFileName, onDow
 
             <div className="space-y-5">
                 {Array.from({ length: pageCount }, (_, index) => (
-                    <PDFCanvasPage key={index + 1} pdfDocument={pdfDocument} pageNumber={index + 1} />
+                    <LazyPDFCanvasPage key={index + 1} pdfDocument={pdfDocument} pageNumber={index + 1} />
                 ))}
             </div>
         </div>
+    );
+}
+
+/** Đặt chỗ cho một trang PDF, chỉ render canvas khi gần cuộn tới (IntersectionObserver). */
+function LazyPDFCanvasPage({ pdfDocument, pageNumber }: { pdfDocument: PdfDocument; pageNumber: number }) {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [shouldRender, setShouldRender] = useState(pageNumber <= 2);
+
+    useEffect(() => {
+        if (shouldRender) return;
+        const node = containerRef.current;
+        if (!node) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries.some((entry) => entry.isIntersecting)) {
+                    setShouldRender(true);
+                    observer.disconnect();
+                }
+            },
+            { rootMargin: "300px" },
+        );
+        observer.observe(node);
+
+        return () => observer.disconnect();
+    }, [shouldRender]);
+
+    return (
+        <section
+            ref={containerRef}
+            className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10"
+        >
+            {shouldRender ? (
+                <PDFCanvasPage pdfDocument={pdfDocument} pageNumber={pageNumber} />
+            ) : (
+                <div className="bg-slate-100 p-3">
+                    <div className="mx-auto aspect-[1/1.414] w-full max-w-full animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+                </div>
+            )}
+        </section>
     );
 }
 
@@ -124,7 +167,7 @@ function PDFCanvasPage({ pdfDocument, pageNumber }: { pdfDocument: PdfDocument; 
                 const page = await pdfDocument.getPage(pageNumber);
                 if (cancelled) return;
 
-                const viewport = page.getViewport({ scale: 1.6 });
+                const viewport = page.getViewport({ scale: 1.2 });
                 const context = canvas.getContext("2d");
                 if (!context) throw new Error("Canvas is not available");
 
@@ -148,16 +191,14 @@ function PDFCanvasPage({ pdfDocument, pageNumber }: { pdfDocument: PdfDocument; 
         };
     }, [pageNumber, pdfDocument]);
 
+    if (error) {
+        return <p className="p-5 text-sm text-red-700">{error}</p>;
+    }
+
     return (
-        <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10">
-            {error ? (
-                <p className="p-5 text-sm text-red-700">{error}</p>
-            ) : (
-                <div className="bg-slate-100 p-3">
-                    <canvas ref={canvasRef} className="mx-auto h-auto w-full max-w-full bg-white" />
-                </div>
-            )}
-        </section>
+        <div className="bg-slate-100 p-3">
+            <canvas ref={canvasRef} className="mx-auto h-auto w-full max-w-full bg-white" />
+        </div>
     );
 }
 
