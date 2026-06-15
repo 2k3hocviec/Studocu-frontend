@@ -422,6 +422,9 @@ function ReportDetailModal({
                     totalPages={report.document.documentFile.totalPages ?? undefined}
                     authToken={accessToken}
                     downloadFileName={report.document.title}
+                    apiBase={apiUrl}
+                    documentId={report.document.id}
+                    previews={report.document.previews}
                   />
                 ) : (
                   <div className="rounded-lg border border-amber-200 bg-amber-50 p-6 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200">

@@ -619,6 +619,9 @@ function DocumentDetailModal({
                     isPreview={false}
                     authToken={accessToken}
                     downloadFileName={document.title}
+                    apiBase={apiUrl}
+                    documentId={document.id}
+                    previews={document.previews}
                     fallback={document.previews.length > 0 ? (
                       <div className="space-y-4">
                         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200">

@@ -303,6 +303,9 @@ export default function DocumentPage() {
               authToken={accessToken}
               downloadFileName={document.title}
               onDownload={handleDownload}
+              apiBase={apiUrl}
+              documentId={documentId}
+              previews={document.previews}
             />
           ) : document.previews.length > 0 ? (
             <div className="space-y-5">

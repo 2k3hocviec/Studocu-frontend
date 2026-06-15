@@ -14,10 +14,13 @@ interface DocumentViewerProps {
   downloadFileName?: string;
   onDownload?: () => void;
   fallback?: ReactNode;
+  apiBase?: string;
+  documentId?: number | string;
+  previews?: Array<{ pageNumber: number; imageUrl: string }>;
 }
 
 /** Chọn trình hiển thị phù hợp cho các file tài liệu PDF, DOCX và PPTX. */
-export function DocumentViewer({ fileUrl, fileType, totalPages, isPreview = false, authToken, downloadFileName, onDownload, fallback }: DocumentViewerProps) {
+export function DocumentViewer({ fileUrl, fileType, totalPages, isPreview = false, authToken, downloadFileName, onDownload, fallback, apiBase, documentId, previews }: DocumentViewerProps) {
   const { objectUrl, isLoading, error } = useProtectedFile(fileUrl, authToken, !isPreview);
   const viewerUrl = isPreview ? fileUrl : objectUrl;
 
@@ -42,25 +45,19 @@ export function DocumentViewer({ fileUrl, fileType, totalPages, isPreview = fals
   }
 
   if (fileType === "PPTX") {
+    if (isPreview) {
+      return <PPTXPreviewGallery previews={previews} totalPages={totalPages} />;
+    }
+    const pdfUrl = apiBase && documentId !== undefined
+      ? `${apiBase}/documents/${documentId}/file/pdf`
+      : viewerUrl;
     return (
-      <div className="space-y-4">
-        {!isPreview && (
-          <div className="flex items-center justify-end rounded-lg border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-white/5">
-            <a
-              href={viewerUrl}
-              download={downloadFileName}
-              onClick={() => onDownload?.()}
-              className="flex h-10 items-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-medium text-white hover:bg-emerald-700"
-            >
-              Tải xuống
-            </a>
-          </div>
-        )}
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-6 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200">
-          <p className="font-semibold">Preview PowerPoint chưa được hỗ trợ.</p>
-          <p className="mt-1 text-sm">Bạn có thể tải file gốc để xem nội dung.</p>
-        </div>
-      </div>
+      <PDFPageViewer
+        fileUrl={pdfUrl}
+        totalPages={totalPages}
+        downloadFileName={downloadFileName?.replace(/\.pptx$/i, ".pdf")}
+        onDownload={onDownload}
+      />
     );
   }
 
@@ -131,6 +128,36 @@ function ViewerMessage({ title, description, tone }: { title: string; descriptio
     <div className={`rounded-lg border p-6 ${classes}`}>
       <p className="font-semibold">{title}</p>
       <p className="mt-1 text-sm">{description}</p>
+    </div>
+  );
+}
+
+/** Hiển thị danh sách ảnh preview PowerPoint giống gallery mặc định. */
+function PPTXPreviewGallery({ previews, totalPages }: { previews?: Array<{ pageNumber: number; imageUrl: string }>; totalPages?: number }) {
+  if (!previews || previews.length === 0) {
+    return (
+      <ViewerMessage
+        tone="neutral"
+        title="Chưa có bản preview"
+        description="Tài liệu PowerPoint này chưa được tạo ảnh xem trước."
+      />
+    );
+  }
+  return (
+    <div className="space-y-5">
+      <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
+        {totalPages ? `${totalPages} trang` : `${previews.length} trang preview`}
+      </div>
+      <div className="space-y-6 rounded-xl bg-slate-200/70 px-3 py-6 dark:bg-slate-900 sm:px-6">
+        {previews.map((preview) => (
+          <img
+            key={preview.pageNumber}
+            src={preview.imageUrl}
+            alt={`Trang ${preview.pageNumber}`}
+            className="mx-auto h-auto w-full max-w-[850px] rounded-sm border border-slate-300 bg-white shadow-sm"
+          />
+        ))}
+      </div>
     </div>
   );
 }
