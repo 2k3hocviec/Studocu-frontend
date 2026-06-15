@@ -18,6 +18,14 @@ body {
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
+/* Ẩn nút ẩn/hiện mật khẩu mặc định của trình duyệt để không bị trùng với toggle custom. */
+input::-ms-reveal,
+input::-ms-clear,
+input::-webkit-contacts-auto-fill-button,
+input::-webkit-credentials-auto-fill-button {
+  display: none !important;
+}
+
 .dark body {
   color: var(--foreground);
   background: var(--background);
