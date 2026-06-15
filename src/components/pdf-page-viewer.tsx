@@ -51,7 +51,7 @@ export function PDFPageViewer({ fileUrl, totalPages = 0, downloadFileName, onDow
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.arrayBuffer();
                 const loadingTask = pdfjs.getDocument({ data });
-                loadedDocument = (await loadingTask.promise) as PdfDocument;
+                loadedDocument = (await loadingTask.promise) as unknown as PdfDocument;
 
                 if (cancelled) {
                     await loadedDocument.destroy();
