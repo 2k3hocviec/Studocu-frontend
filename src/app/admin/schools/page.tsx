@@ -238,49 +238,96 @@ export default function AdminSchoolsPage() {
             <span className="text-sm font-semibold text-slate-400">Không tìm thấy trường học nào</span>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-[860px] w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-400 text-xs font-bold uppercase dark:border-slate-800 dark:bg-slate-900/50">
-                  <th className="py-4 px-6">Tên trường học</th>
-                  <th className="py-4 px-4">Slug</th>
-                  <th className="py-4 px-4 font-semibold">Mô tả</th>
-                  <th className="py-4 px-4 text-center">Số môn học</th>
-                  <th className="py-4 px-4 text-center">Số tài liệu</th>
-                  <th className="py-4 px-6 text-right">Tác vụ</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
-                {schools.map((school) => (
-                  <tr key={school.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/20">
-                    <td className="py-4 px-6 font-bold text-slate-800 dark:text-slate-200">
-                      {school.name}
-                    </td>
-                    <td className="py-4 px-4 text-xs font-semibold text-slate-450 dark:text-slate-400">{school.slug}</td>
-                    <td className="py-4 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 max-w-[200px] truncate" title={school.description ?? ""}>
-                      {school.description || <span className="italic text-slate-300">Không có mô tả</span>}
-                    </td>
-                    <td className="py-4 px-4 text-center font-bold text-slate-700 dark:text-slate-350">{school._count.subjects}</td>
-                    <td className="py-4 px-4 text-center font-bold text-emerald-650 dark:text-emerald-400">{school._count.documents}</td>
-                    <td className="py-4 px-6 text-right space-x-1">
-                      <button
-                        onClick={() => openEditModal(school)}
-                        className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-850 transition-colors"
-                      >
-                        Sửa
-                      </button>
-                      <button
-                        onClick={() => handleDelete(school.id)}
-                        className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-700 transition-colors"
-                      >
-                        Xóa
-                      </button>
-                    </td>
+          <>
+            {/* Desktop view */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="min-w-[860px] w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-400 text-xs font-bold uppercase dark:border-slate-800 dark:bg-slate-900/50">
+                    <th className="py-4 px-6">Tên trường học</th>
+                    <th className="py-4 px-4">Slug</th>
+                    <th className="py-4 px-4 font-semibold">Mô tả</th>
+                    <th className="py-4 px-4 text-center">Số môn học</th>
+                    <th className="py-4 px-4 text-center">Số tài liệu</th>
+                    <th className="py-4 px-6 text-right">Tác vụ</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
+                  {schools.map((school) => (
+                    <tr key={school.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/20">
+                      <td className="py-4 px-6 font-bold text-slate-800 dark:text-slate-200">
+                        {school.name}
+                      </td>
+                      <td className="py-4 px-4 text-xs font-semibold text-slate-450 dark:text-slate-400">{school.slug}</td>
+                      <td className="py-4 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 max-w-[200px] truncate" title={school.description ?? ""}>
+                        {school.description || <span className="italic text-slate-300">Không có mô tả</span>}
+                      </td>
+                      <td className="py-4 px-4 text-center font-bold text-slate-700 dark:text-slate-350">{school._count.subjects}</td>
+                      <td className="py-4 px-4 text-center font-bold text-emerald-650 dark:text-emerald-400">{school._count.documents}</td>
+                      <td className="py-4 px-6 text-right space-x-1">
+                        <button
+                          onClick={() => openEditModal(school)}
+                          className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-850 transition-colors"
+                        >
+                          Sửa
+                        </button>
+                        <button
+                          onClick={() => handleDelete(school.id)}
+                          className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-700 transition-colors"
+                        >
+                          Xóa
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile view */}
+            <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800/60">
+              {schools.map((school) => (
+                <div key={school.id} className="p-4 space-y-3">
+                  <div className="space-y-1">
+                    <p className="font-bold text-slate-800 dark:text-slate-200 text-sm break-words">{school.name}</p>
+                    <p className="text-[10px] font-mono text-slate-400 dark:text-slate-500">slug: {school.slug}</p>
+                  </div>
+
+                  {school.description ? (
+                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">{school.description}</p>
+                  ) : (
+                    <p className="text-xs italic text-slate-300 dark:text-slate-650">Không có mô tả</p>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-3 text-xs text-slate-500 dark:text-slate-400">
+                    <div>
+                      <p className="font-bold text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Môn học</p>
+                      <p className="font-bold mt-0.5 text-slate-700 dark:text-slate-300">{school._count.subjects}</p>
+                    </div>
+                    <div>
+                      <p className="font-bold text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Tài liệu</p>
+                      <p className="font-bold mt-0.5 text-emerald-650 dark:text-emerald-400">{school._count.documents}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-1.5 pt-2">
+                    <button
+                      onClick={() => openEditModal(school)}
+                      className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-850 transition-colors"
+                    >
+                      Sửa
+                    </button>
+                    <button
+                      onClick={() => handleDelete(school.id)}
+                      className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-700 transition-colors"
+                    >
+                      Xóa
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
         {meta && meta.totalPages > 1 && (
