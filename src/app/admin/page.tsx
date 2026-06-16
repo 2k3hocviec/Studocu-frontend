@@ -246,7 +246,7 @@ export default function AdminDashboardPage() {
             <h3 className="text-lg font-bold">Biểu đồ sự tăng trưởng</h3>
             <p className="text-xs text-slate-400">Di chuột vào các điểm mốc trên đường vẽ để xem chi tiết</p>
           </div>
-          <div className="flex rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+          <div className="flex rounded-xl bg-slate-100 p-1 dark:bg-slate-800 overflow-x-auto max-w-full scrollbar-none whitespace-nowrap">
             {(["revenue", "users", "documents", "downloads"] as const).map((mode) => (
               <button
                 key={mode}
@@ -254,7 +254,7 @@ export default function AdminDashboardPage() {
                   setChartMode(mode);
                   setHoveredPoint(null);
                 }}
-                className={`rounded-lg px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
+                className={`rounded-lg px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition-all duration-200 shrink-0 ${
                   chartMode === mode
                     ? "bg-white text-emerald-700 shadow-sm dark:bg-slate-950 dark:text-emerald-400"
                     : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
@@ -269,122 +269,124 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="relative">
+        <div>
           {currentChartData.length === 0 ? (
             <div className="flex h-60 items-center justify-center border-2 border-dashed border-slate-200 rounded-xl dark:border-slate-800">
               <span className="text-sm font-semibold text-slate-400">Không có dữ liệu trong khoảng thời gian này</span>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-            <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="h-auto min-w-[640px] w-full">
-              <defs>
-                <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#10b981" stopOpacity="0.4" />
-                  <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
+            <div className="overflow-x-auto w-full">
+              <div className="relative min-w-[640px] w-full">
+                <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="h-auto w-full">
+                  <defs>
+                    <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.4" />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
+                    </linearGradient>
+                  </defs>
 
-              {[0, 0.25, 0.5, 0.75, 1].map((ratio, index) => {
-                const y = paddingY + ratio * (svgHeight - paddingY * 2);
-                const gridVal = Math.round(maxVal - ratio * (maxVal - minVal));
-                return (
-                  <g key={index}>
-                    <line
-                      x1={paddingX}
-                      y1={y}
-                      x2={svgWidth - paddingX}
-                      y2={y}
-                      stroke="currentColor"
-                      className="text-slate-100 dark:text-slate-800/60"
-                      strokeDasharray="4 4"
+                  {[0, 0.25, 0.5, 0.75, 1].map((ratio, index) => {
+                    const y = paddingY + ratio * (svgHeight - paddingY * 2);
+                    const gridVal = Math.round(maxVal - ratio * (maxVal - minVal));
+                    return (
+                      <g key={index}>
+                        <line
+                          x1={paddingX}
+                          y1={y}
+                          x2={svgWidth - paddingX}
+                          y2={y}
+                          stroke="currentColor"
+                          className="text-slate-100 dark:text-slate-800/60"
+                          strokeDasharray="4 4"
+                        />
+                        <text
+                          x={paddingX - 10}
+                          y={y + 4}
+                          textAnchor="end"
+                          className="fill-slate-400 text-[10px] font-semibold"
+                        >
+                          {gridVal.toLocaleString("vi-VN")}
+                        </text>
+                      </g>
+                    );
+                  })}
+
+                  {areaD && <path d={areaD} fill="url(#chartGradient)" />}
+
+                  {pathD && (
+                    <path
+                      d={pathD}
+                      fill="none"
+                      stroke="#10b981"
+                      strokeWidth={3}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
-                    <text
-                      x={paddingX - 10}
-                      y={y + 4}
-                      textAnchor="end"
-                      className="fill-slate-400 text-[10px] font-semibold"
-                    >
-                      {gridVal.toLocaleString("vi-VN")}
-                    </text>
-                  </g>
-                );
-              })}
-
-              {areaD && <path d={areaD} fill="url(#chartGradient)" />}
-
-              {pathD && (
-                <path
-                  d={pathD}
-                  fill="none"
-                  stroke="#10b981"
-                  strokeWidth={3}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              )}
-
-              {points.map((p, index) => (
-                <circle
-                  key={index}
-                  cx={p.x}
-                  cy={p.y}
-                  r={5}
-                  className="fill-white stroke-emerald-500 stroke-[3] cursor-pointer hover:r-7 transition-all duration-150"
-                  onMouseEnter={() => {
-                    setHoveredPoint({
-                      x: p.x,
-                      y: p.y,
-                      label: p.date,
-                      val: chartMode === "revenue" ? `${p.val.toLocaleString()} đ` : `${p.val.toLocaleString()} lượt`,
-                    });
-                  }}
-                  onMouseLeave={() => setHoveredPoint(null)}
-                />
-              ))}
-
-              {/* Chỉ hiện mốc đầu, giữa và cuối để tránh chồng chữ. */}
-              {points.length > 0 && (
-                <>
-                  <text x={points[0].x} y={svgHeight - 10} textAnchor="middle" className="fill-slate-400 text-[10px] font-semibold">
-                    {points[0].date}
-                  </text>
-                  {points.length > 2 && (
-                    <text
-                      x={points[Math.floor(points.length / 2)].x}
-                      y={svgHeight - 10}
-                      textAnchor="middle"
-                      className="fill-slate-400 text-[10px] font-semibold"
-                    >
-                      {points[Math.floor(points.length / 2)].date}
-                    </text>
                   )}
-                  {points.length > 1 && (
-                    <text
-                      x={points[points.length - 1].x}
-                      y={svgHeight - 10}
-                      textAnchor="middle"
-                      className="fill-slate-400 text-[10px] font-semibold"
-                    >
-                      {points[points.length - 1].date}
-                    </text>
-                  )}
-                </>
-              )}
-            </svg>
-            </div>
-          )}
 
-          {hoveredPoint && (
-            <div
-              className="absolute pointer-events-none rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-bold text-white shadow-lg backdrop-blur-sm transition-all duration-75"
-              style={{
-                left: `${(hoveredPoint.x / svgWidth) * 100}%`,
-                top: `${(hoveredPoint.y / svgHeight) * 100 - 15}%`,
-                transform: "translate(-50%, -100%)",
-              }}
-            >
-              <p className="text-[10px] text-slate-300 font-semibold">{hoveredPoint.label}</p>
-              <p className="text-sm text-emerald-400 mt-0.5">{hoveredPoint.val}</p>
+                  {points.map((p, index) => (
+                    <circle
+                      key={index}
+                      cx={p.x}
+                      cy={p.y}
+                      r={5}
+                      className="fill-white stroke-emerald-500 stroke-[3] cursor-pointer hover:r-7 transition-all duration-150"
+                      onMouseEnter={() => {
+                        setHoveredPoint({
+                          x: p.x,
+                          y: p.y,
+                          label: p.date,
+                          val: chartMode === "revenue" ? `${p.val.toLocaleString()} đ` : `${p.val.toLocaleString()} lượt`,
+                        });
+                      }}
+                      onMouseLeave={() => setHoveredPoint(null)}
+                    />
+                  ))}
+
+                  {/* Chỉ hiện mốc đầu, giữa và cuối để tránh chồng chữ. */}
+                  {points.length > 0 && (
+                    <>
+                      <text x={points[0].x} y={svgHeight - 10} textAnchor="middle" className="fill-slate-400 text-[10px] font-semibold">
+                        {points[0].date}
+                      </text>
+                      {points.length > 2 && (
+                        <text
+                          x={points[Math.floor(points.length / 2)].x}
+                          y={svgHeight - 10}
+                          textAnchor="middle"
+                          className="fill-slate-400 text-[10px] font-semibold"
+                        >
+                          {points[Math.floor(points.length / 2)].date}
+                        </text>
+                      )}
+                      {points.length > 1 && (
+                        <text
+                          x={points[points.length - 1].x}
+                          y={svgHeight - 10}
+                          textAnchor="middle"
+                          className="fill-slate-400 text-[10px] font-semibold"
+                        >
+                          {points[points.length - 1].date}
+                        </text>
+                      )}
+                    </>
+                  )}
+                </svg>
+
+                {hoveredPoint && (
+                  <div
+                    className="absolute pointer-events-none rounded-xl bg-slate-900/90 px-3 py-2 text-xs font-bold text-white shadow-lg backdrop-blur-sm transition-all duration-75"
+                    style={{
+                      left: `${(hoveredPoint.x / svgWidth) * 100}%`,
+                      top: `${(hoveredPoint.y / svgHeight) * 100 - 15}%`,
+                      transform: "translate(-50%, -100%)",
+                    }}
+                  >
+                    <p className="text-[10px] text-slate-300 font-semibold">{hoveredPoint.label}</p>
+                    <p className="text-sm text-emerald-400 mt-0.5">{hoveredPoint.val}</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -396,30 +398,53 @@ export default function AdminDashboardPage() {
             <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">Tài liệu phổ biến nhất</h3>
             <p className="text-xs text-slate-400">Xếp hạng 5 tài liệu được tải nhiều nhất</p>
           </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-[620px] w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 text-xs font-bold uppercase">
-                  <th className="py-3 px-2">Tên tài liệu</th>
-                  <th className="py-3 px-2">Người đăng</th>
-                  <th className="py-3 px-2 text-right">Lượt tải</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
-                {topCharts.topDocuments.map((doc) => (
-                  <tr key={doc.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
-                    <td className="py-3.5 px-2 font-semibold truncate max-w-[200px]" title={doc.title}>
-                      {doc.title}
-                    </td>
-                    <td className="py-3.5 px-2 text-slate-500 text-xs font-semibold">{doc.uploader.fullName}</td>
-                    <td className="py-3.5 px-2 text-right font-bold text-emerald-600 dark:text-emerald-400">
-                      {doc.downloadCount.toLocaleString()}
-                    </td>
+          <>
+            {/* Desktop view */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 text-xs font-bold uppercase">
+                    <th className="py-3 px-2">Tên tài liệu</th>
+                    <th className="py-3 px-2">Người đăng</th>
+                    <th className="py-3 px-2 text-right">Lượt tải</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
+                  {topCharts.topDocuments.map((doc) => (
+                    <tr key={doc.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                      <td className="py-3.5 px-2 font-semibold truncate max-w-[250px]" title={doc.title}>
+                        {doc.title}
+                      </td>
+                      <td className="py-3.5 px-2 text-slate-500 text-xs font-semibold">{doc.uploader.fullName}</td>
+                      <td className="py-3.5 px-2 text-right font-bold text-emerald-600 dark:text-emerald-400">
+                        {doc.downloadCount.toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile view */}
+            <div className="sm:hidden divide-y divide-slate-100 dark:divide-slate-800/40">
+              {topCharts.topDocuments.map((doc) => (
+                <div key={doc.id} className="py-3 flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-slate-800 dark:text-slate-200 truncate text-sm" title={doc.title}>
+                      {doc.title}
+                    </p>
+                    <p className="text-xs text-slate-400 mt-0.5">{doc.uploader.fullName}</p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                      {doc.downloadCount.toLocaleString()}
+                    </span>
+                    <p className="text-[10px] text-slate-400">lượt tải</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         </div>
 
         <div className="rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-900 border border-slate-100 dark:border-slate-800/40">
@@ -427,8 +452,8 @@ export default function AdminDashboardPage() {
             <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">Trường đại học sôi nổi</h3>
             <p className="text-xs text-slate-400">Xếp hạng 5 trường có nhiều tài liệu học tập nhất</p>
           </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-[520px] w-full text-left text-sm">
+          <div className="w-full">
+            <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 text-xs font-bold uppercase">
                   <th className="py-3 px-2">Tên trường học</th>
@@ -438,7 +463,7 @@ export default function AdminDashboardPage() {
               <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
                 {topCharts.topSchools.map((school) => (
                   <tr key={school.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
-                    <td className="py-3.5 px-2 font-semibold">{school.name}</td>
+                    <td className="py-3.5 px-2 font-semibold text-sm">{school.name}</td>
                     <td className="py-3.5 px-2 text-right font-bold text-emerald-600 dark:text-emerald-400">
                       {school.documentCount.toLocaleString()}
                     </td>
