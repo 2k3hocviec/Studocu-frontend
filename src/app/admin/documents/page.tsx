@@ -331,111 +331,223 @@ export default function AdminDocumentsPage() {
             <span className="text-sm font-semibold text-slate-400">Không tìm thấy tài liệu phù hợp</span>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-[980px] w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-400 text-xs font-bold uppercase dark:border-slate-800 dark:bg-slate-900/50">
-                  <th className="py-4 px-6">Tài liệu</th>
-                  <th className="py-4 px-4">Thông tin phân loại</th>
-                  <th className="py-4 px-4">Người đăng / Ngày</th>
-                  <th className="py-4 px-4">Trạng thái</th>
-                  <th className="py-4 px-6 text-right">Tác vụ</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
-                {documents.map((doc) => (
-                  <tr key={doc.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/20">
-                    <td className="py-4 px-6">
-                      <p className="font-semibold text-slate-800 dark:text-slate-200">{doc.title}</p>
-                      <div className="mt-1 flex items-center space-x-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{documentTypeLabels[doc.documentType] ?? doc.documentType}</span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{schoolName(doc)}</p>
-                      <p className="text-[11px] font-bold text-slate-400 mt-0.5">{subjectName(doc)}</p>
-                    </td>
-                    <td className="py-4 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                      <p>{doc.uploader.fullName}</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">{new Date(doc.createdAt).toLocaleDateString("vi-VN")}</p>
-                    </td>
-                    <td className="py-4 px-4">
-                      {getStatusBadge(doc.status)}
-                      {doc.status === "REJECTED" && doc.rejectReason && (
-                        <p className="mt-1 text-[10px] text-slate-400 italic max-w-[150px] truncate" title={doc.rejectReason}>
-                          Lý do: {doc.rejectReason}
-                        </p>
-                      )}
-                    </td>
-                    <td className="py-4 px-6 text-right space-x-1">
-                      <button
-                        onClick={() => void openDocumentDetail(doc.id)}
-                        className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/40 transition-colors"
-                      >
-                        Xem
-                      </button>
-                      {doc.status === "PENDING" && (
-                        <>
-                          <button
-                            onClick={() => handleApprove(doc.id)}
-                            className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 transition-colors"
-                          >
-                            Duyệt
-                          </button>
-                          <button
-                            onClick={() => setRejectingDocId(doc.id)}
-                            className="rounded-lg bg-rose-550 border border-rose-200 px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-50 dark:border-rose-950 dark:hover:bg-rose-950/20 transition-colors"
-                          >
-                            Từ chối
-                          </button>
-                        </>
-                      )}
-                      {doc.status === "APPROVED" && (
-                        <>
-                          <button
-                            onClick={() => handleHide(doc.id)}
-                            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/40 transition-colors"
-                          >
-                            Ẩn đi
-                          </button>
-                          <button
-                            onClick={() => handleDelete(doc.id)}
-                            className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-700 transition-colors"
-                          >
-                            Xóa
-                          </button>
-                        </>
-                      )}
-                      {doc.status === "HIDDEN" && (
-                        <>
-                          <button
-                            onClick={() => handleUnhide(doc.id)}
-                            className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 transition-colors"
-                          >
-                            Hiện lại
-                          </button>
+          <>
+            {/* Desktop view */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="min-w-[980px] w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-400 text-xs font-bold uppercase dark:border-slate-800 dark:bg-slate-900/50">
+                    <th className="py-4 px-6">Tài liệu</th>
+                    <th className="py-4 px-4">Thông tin phân loại</th>
+                    <th className="py-4 px-4">Người đăng / Ngày</th>
+                    <th className="py-4 px-4">Trạng thái</th>
+                    <th className="py-4 px-6 text-right">Tác vụ</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
+                  {documents.map((doc) => (
+                    <tr key={doc.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/20">
+                      <td className="py-4 px-6">
+                        <p className="font-semibold text-slate-800 dark:text-slate-200">{doc.title}</p>
+                        <div className="mt-1 flex items-center space-x-2">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{documentTypeLabels[doc.documentType] ?? doc.documentType}</span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{schoolName(doc)}</p>
+                        <p className="text-[11px] font-bold text-slate-400 mt-0.5">{subjectName(doc)}</p>
+                      </td>
+                      <td className="py-4 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        <p>{doc.uploader.fullName}</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">{new Date(doc.createdAt).toLocaleDateString("vi-VN")}</p>
+                      </td>
+                      <td className="py-4 px-4">
+                        {getStatusBadge(doc.status)}
+                        {doc.status === "REJECTED" && doc.rejectReason && (
+                          <p className="mt-1 text-[10px] text-slate-400 italic max-w-[150px] truncate" title={doc.rejectReason}>
+                            Lý do: {doc.rejectReason}
+                          </p>
+                        )}
+                      </td>
+                      <td className="py-4 px-6 text-right space-x-1">
+                        <button
+                          onClick={() => void openDocumentDetail(doc.id)}
+                          className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/40 transition-colors"
+                        >
+                          Xem
+                        </button>
+                        {doc.status === "PENDING" && (
+                          <>
+                            <button
+                              onClick={() => handleApprove(doc.id)}
+                              className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 transition-colors"
+                            >
+                              Duyệt
+                            </button>
+                            <button
+                              onClick={() => setRejectingDocId(doc.id)}
+                              className="rounded-lg bg-rose-550 border border-rose-200 px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-50 dark:border-rose-950 dark:hover:bg-rose-950/20 transition-colors"
+                            >
+                              Từ chối
+                            </button>
+                          </>
+                        )}
+                        {doc.status === "APPROVED" && (
+                          <>
+                            <button
+                              onClick={() => handleHide(doc.id)}
+                              className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/40 transition-colors"
+                            >
+                              Ẩn đi
+                            </button>
+                            <button
+                              onClick={() => handleDelete(doc.id)}
+                              className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-700 transition-colors"
+                            >
+                              Xóa
+                            </button>
+                          </>
+                        )}
+                        {doc.status === "HIDDEN" && (
+                          <>
+                            <button
+                              onClick={() => handleUnhide(doc.id)}
+                              className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 transition-colors"
+                            >
+                              Hiện lại
+                            </button>
+                            <button
+                              onClick={() => handleDelete(doc.id)}
+                              className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-700 transition-colors"
+                            >
+                              Xóa vĩnh viễn
+                            </button>
+                          </>
+                        )}
+                        {doc.status === "REJECTED" && (
                           <button
                             onClick={() => handleDelete(doc.id)}
                             className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-700 transition-colors"
                           >
                             Xóa vĩnh viễn
                           </button>
-                        </>
-                      )}
-                      {doc.status === "REJECTED" && (
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile view */}
+            <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800/60">
+              {documents.map((doc) => (
+                <div key={doc.id} className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1 min-w-0">
+                      <p className="font-semibold text-slate-800 dark:text-slate-200 break-words">{doc.title}</p>
+                      <span className="inline-block rounded-full bg-slate-100 dark:bg-slate-800/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                        {documentTypeLabels[doc.documentType] ?? doc.documentType}
+                      </span>
+                    </div>
+                    <div className="shrink-0">
+                      {getStatusBadge(doc.status)}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-xs text-slate-500 dark:text-slate-400">
+                    <div>
+                      <p className="font-bold text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Trường</p>
+                      <p className="font-semibold mt-0.5 text-slate-700 dark:text-slate-300 truncate" title={schoolName(doc)}>{schoolName(doc)}</p>
+                    </div>
+                    <div>
+                      <p className="font-bold text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Môn học</p>
+                      <p className="font-semibold mt-0.5 text-slate-700 dark:text-slate-300 truncate" title={subjectName(doc)}>{subjectName(doc)}</p>
+                    </div>
+                    <div>
+                      <p className="font-bold text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Người đăng</p>
+                      <p className="font-semibold mt-0.5 text-slate-700 dark:text-slate-300 truncate" title={doc.uploader.fullName}>{doc.uploader.fullName}</p>
+                    </div>
+                    <div>
+                      <p className="font-bold text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Ngày đăng</p>
+                      <p className="font-semibold mt-0.5 text-slate-700 dark:text-slate-300">{new Date(doc.createdAt).toLocaleDateString("vi-VN")}</p>
+                    </div>
+                  </div>
+
+                  {doc.status === "REJECTED" && doc.rejectReason && (
+                    <div className="rounded-lg bg-rose-50/50 dark:bg-rose-950/20 p-2 text-xs text-rose-600 dark:text-rose-400">
+                      <span className="font-bold">Lý do từ chối:</span> {doc.rejectReason}
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap items-center justify-end gap-1.5 pt-2">
+                    <button
+                      onClick={() => void openDocumentDetail(doc.id)}
+                      className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/40 transition-colors"
+                    >
+                      Xem
+                    </button>
+                    {doc.status === "PENDING" && (
+                      <>
+                        <button
+                          onClick={() => handleApprove(doc.id)}
+                          className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 transition-colors"
+                        >
+                          Duyệt
+                        </button>
+                        <button
+                          onClick={() => setRejectingDocId(doc.id)}
+                          className="rounded-lg bg-rose-550 border border-rose-200 px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-50 dark:border-rose-950 dark:hover:bg-rose-950/20 transition-colors"
+                        >
+                          Từ chối
+                        </button>
+                      </>
+                    )}
+                    {doc.status === "APPROVED" && (
+                      <>
+                        <button
+                          onClick={() => handleHide(doc.id)}
+                          className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/40 transition-colors"
+                        >
+                          Ẩn đi
+                        </button>
+                        <button
+                          onClick={() => handleDelete(doc.id)}
+                          className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-700 transition-colors"
+                        >
+                          Xóa
+                        </button>
+                      </>
+                    )}
+                    {doc.status === "HIDDEN" && (
+                      <>
+                        <button
+                          onClick={() => handleUnhide(doc.id)}
+                          className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 transition-colors"
+                        >
+                          Hiện lại
+                        </button>
                         <button
                           onClick={() => handleDelete(doc.id)}
                           className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-700 transition-colors"
                         >
                           Xóa vĩnh viễn
                         </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      </>
+                    )}
+                    {doc.status === "REJECTED" && (
+                      <button
+                        onClick={() => handleDelete(doc.id)}
+                        className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-700 transition-colors"
+                      >
+                        Xóa vĩnh viễn
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
         {meta && meta.totalPages > 1 && (
