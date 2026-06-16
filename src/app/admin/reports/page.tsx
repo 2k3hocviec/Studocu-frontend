@@ -182,73 +182,150 @@ export default function AdminReportsPage() {
             <span className="text-sm font-semibold text-slate-400">Không có báo cáo vi phạm nào</span>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-[900px] w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/50 text-xs font-bold uppercase text-slate-400 dark:border-slate-800 dark:bg-slate-900/50">
-                  <th className="px-6 py-4">Tài liệu bị báo cáo</th>
-                  <th className="px-4 py-4">Lý do báo cáo</th>
-                  <th className="px-4 py-4">Người báo cáo</th>
-                  <th className="px-4 py-4">Trạng thái</th>
-                  <th className="px-6 py-4 text-right">Xử lý</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
-                {reports.map((report) => (
-                  <tr key={report.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/20">
-                    <td className="px-6 py-4 font-semibold">
-                      <p className="text-slate-800 dark:text-slate-200">{report.document.title}</p>
-                      <p className="mt-1 text-[10px] font-bold uppercase text-slate-400">ID tài liệu: {report.document.id}</p>
-                    </td>
-                    <td className="px-4 py-4">
-                      <p className="font-semibold text-slate-700 dark:text-slate-300">{reportReasonLabel(report.reason)}</p>
+          <>
+            {/* Desktop view */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="min-w-[900px] w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50/50 text-xs font-bold uppercase text-slate-400 dark:border-slate-800 dark:bg-slate-900/50">
+                    <th className="px-6 py-4">Tài liệu bị báo cáo</th>
+                    <th className="px-4 py-4">Lý do báo cáo</th>
+                    <th className="px-4 py-4">Người báo cáo</th>
+                    <th className="px-4 py-4">Trạng thái</th>
+                    <th className="px-6 py-4 text-right">Xử lý</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
+                  {reports.map((report) => (
+                    <tr key={report.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/20">
+                      <td className="px-6 py-4 font-semibold">
+                        <p className="text-slate-800 dark:text-slate-200">{report.document.title}</p>
+                        <p className="mt-1 text-[10px] font-bold uppercase text-slate-400">ID tài liệu: {report.document.id}</p>
+                      </td>
+                      <td className="px-4 py-4">
+                        <p className="font-semibold text-slate-700 dark:text-slate-300">{reportReasonLabel(report.reason)}</p>
+                        {report.description && (
+                          <p className="mt-1 max-w-[200px] truncate text-xs text-slate-400" title={report.description}>
+                            {report.description}
+                          </p>
+                        )}
+                      </td>
+                      <td className="px-4 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        <p>{report.reporter.fullName}</p>
+                        <p className="mt-0.5 text-[10px] text-slate-400">{report.reporter.email}</p>
+                      </td>
+                      <td className="px-4 py-4">
+                        <StatusBadge status={report.status} />
+                        {report.status !== "PENDING" && report.handler && (
+                          <p className="mt-1 text-[10px] font-semibold text-slate-400">Bởi: {report.handler.fullName}</p>
+                        )}
+                      </td>
+                      <td className="space-x-1 px-6 py-4 text-right">
+                        <button
+                          onClick={() => void openReportDetail(report.id)}
+                          className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/40"
+                        >
+                          Chi tiết
+                        </button>
+                        {report.status === "PENDING" ? (
+                          <>
+                            <button
+                              onClick={() => void handleResolve(report.id)}
+                              className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-emerald-700"
+                            >
+                              Giải quyết
+                            </button>
+                            <button
+                              onClick={() => void handleReject(report.id)}
+                              className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/40"
+                            >
+                              Bác bỏ
+                            </button>
+                          </>
+                        ) : (
+                          <span className="text-xs font-semibold italic text-slate-400">Đã xử lý</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile view */}
+            <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800/60">
+              {reports.map((report) => (
+                <div key={report.id} className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1 min-w-0">
+                      <p className="font-semibold text-slate-850 dark:text-slate-200 break-words">{report.document.title}</p>
+                      <p className="text-[10px] font-bold uppercase text-slate-450 dark:text-slate-550">ID tài liệu: {report.document.id}</p>
+                    </div>
+                    <div className="shrink-0">
+                      <StatusBadge status={report.status} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 text-xs">
+                    <div>
+                      <p className="font-bold text-[10px] uppercase tracking-wider text-slate-450 dark:text-slate-500">Lý do báo cáo</p>
+                      <p className="font-semibold text-slate-700 dark:text-slate-350 mt-0.5">{reportReasonLabel(report.reason)}</p>
                       {report.description && (
-                        <p className="mt-1 max-w-[200px] truncate text-xs text-slate-400" title={report.description}>
-                          {report.description}
+                        <p className="mt-1 text-slate-500 dark:text-slate-450 italic bg-slate-50 dark:bg-slate-950/40 p-2.5 rounded-lg break-words">
+                          &quot;{report.description}&quot;
                         </p>
                       )}
-                    </td>
-                    <td className="px-4 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                      <p>{report.reporter.fullName}</p>
-                      <p className="mt-0.5 text-[10px] text-slate-400">{report.reporter.email}</p>
-                    </td>
-                    <td className="px-4 py-4">
-                      <StatusBadge status={report.status} />
-                      {report.status !== "PENDING" && report.handler && (
-                        <p className="mt-1 text-[10px] font-semibold text-slate-400">Bởi: {report.handler.fullName}</p>
-                      )}
-                    </td>
-                    <td className="space-x-1 px-6 py-4 text-right">
-                      <button
-                        onClick={() => void openReportDetail(report.id)}
-                        className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/40"
-                      >
-                        Chi tiết
-                      </button>
-                      {report.status === "PENDING" ? (
-                        <>
-                          <button
-                            onClick={() => void handleResolve(report.id)}
-                            className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-emerald-700"
-                          >
-                            Giải quyết
-                          </button>
-                          <button
-                            onClick={() => void handleReject(report.id)}
-                            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/40"
-                          >
-                            Bác bỏ
-                          </button>
-                        </>
-                      ) : (
-                        <span className="text-xs font-semibold italic text-slate-400">Đã xử lý</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 pt-1">
+                      <div>
+                        <p className="font-bold text-[10px] uppercase tracking-wider text-slate-450 dark:text-slate-500">Người báo cáo</p>
+                        <p className="font-semibold text-slate-700 dark:text-slate-300 mt-0.5 truncate" title={report.reporter.fullName}>{report.reporter.fullName}</p>
+                        <p className="text-[10px] text-slate-400 truncate" title={report.reporter.email}>{report.reporter.email}</p>
+                      </div>
+                      <div>
+                        <p className="font-bold text-[10px] uppercase tracking-wider text-slate-450 dark:text-slate-500">Thời gian</p>
+                        <p className="font-semibold text-slate-700 dark:text-slate-300 mt-0.5">{new Date(report.createdAt).toLocaleDateString("vi-VN")}</p>
+                      </div>
+                    </div>
+
+                    {report.status !== "PENDING" && report.handler && (
+                      <div className="pt-1 text-[10px] font-semibold text-slate-450 dark:text-slate-500">
+                        Đã xử lý bởi: {report.handler.fullName}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-end gap-1.5 pt-2">
+                    <button
+                      onClick={() => void openReportDetail(report.id)}
+                      className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/40"
+                    >
+                      Chi tiết
+                    </button>
+                    {report.status === "PENDING" ? (
+                      <>
+                        <button
+                          onClick={() => void handleResolve(report.id)}
+                          className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-emerald-700"
+                        >
+                          Giải quyết
+                        </button>
+                        <button
+                          onClick={() => void handleReject(report.id)}
+                          className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/40"
+                        >
+                          Bác bỏ
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-xs font-semibold italic text-slate-400 py-1.5">Đã xử lý</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
         {meta && meta.totalPages > 1 && (
