@@ -49,6 +49,14 @@ type APIResponse = {
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
 
+const documentTypeLabels: Record<string, string> = {
+  LECTURE: "Bài giảng",
+  EXAM: "Đề thi",
+  NOTE: "Ghi chú",
+  ASSIGNMENT: "Bài tập",
+  OTHER: "Khác",
+};
+
 /** Trả về tên trường chính thức hoặc tên trường người dùng đề xuất trong bảng admin. */
 function schoolName(document: Pick<DocumentItem, "school" | "requestedSchoolName">) {
   return document.school?.name ?? document.requestedSchoolName ?? "Chưa có trường";
@@ -340,7 +348,7 @@ export default function AdminDocumentsPage() {
                     <td className="py-4 px-6">
                       <p className="font-semibold text-slate-800 dark:text-slate-200">{doc.title}</p>
                       <div className="mt-1 flex items-center space-x-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{doc.documentType}</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{documentTypeLabels[doc.documentType] ?? doc.documentType}</span>
                       </div>
                     </td>
                     <td className="py-4 px-4">
@@ -595,7 +603,7 @@ function DocumentDetailModal({
                     <DetailRow label="Người đăng" value={document.uploader.fullName} />
                     <DetailRow label="Trường" value={schoolName(document)} />
                     <DetailRow label="Môn học" value={subjectName(document)} />
-                    <DetailRow label="Loại" value={document.documentType} />
+                    <DetailRow label="Loại" value={documentTypeLabels[document.documentType] ?? document.documentType} />
                     <DetailRow label="Lượt xem" value={String(document.viewCount)} />
                     <DetailRow label="Lượt tải" value={String(document.downloadCount)} />
                     <DetailRow label="Ngày đăng" value={new Date(document.createdAt).toLocaleDateString("vi-VN")} />

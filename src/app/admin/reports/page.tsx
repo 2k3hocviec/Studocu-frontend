@@ -60,6 +60,14 @@ type APIResponse = {
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
 
+const documentTypeLabels: Record<string, string> = {
+  LECTURE: "Bài giảng",
+  EXAM: "Đề thi",
+  NOTE: "Ghi chú",
+  ASSIGNMENT: "Bài tập",
+  OTHER: "Khác",
+};
+
 /** Chuẩn hóa meta phân trang từ nhiều dạng response API. */
 function normalizeMeta(data: APIResponse["data"]): PageMeta {
   if (data.meta) return data.meta;
@@ -359,7 +367,7 @@ function ReportDetailModal({
                   )}
                   <div className="mt-4 grid gap-3 text-sm text-slate-600 dark:text-slate-300">
                     <p><span className="font-bold text-slate-800 dark:text-slate-100">Người đăng:</span> {report.document.uploader.fullName}</p>
-                    <p><span className="font-bold text-slate-800 dark:text-slate-100">Loại:</span> {report.document.documentType}</p>
+                    <p><span className="font-bold text-slate-800 dark:text-slate-100">Loại:</span> {documentTypeLabels[report.document.documentType] ?? report.document.documentType}</p>
                     <p><span className="font-bold text-slate-800 dark:text-slate-100">Trường:</span> {report.document.school.name}</p>
                     <p><span className="font-bold text-slate-800 dark:text-slate-100">Môn:</span> {report.document.subject.name}</p>
                     <p><span className="font-bold text-slate-800 dark:text-slate-100">Lượt xem:</span> {report.document.viewCount}</p>
