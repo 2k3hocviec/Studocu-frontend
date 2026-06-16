@@ -285,51 +285,99 @@ export default function AdminSubjectsPage() {
             <span className="text-sm font-semibold text-slate-400">Không tìm thấy môn học nào</span>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-[900px] w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-400 text-xs font-bold uppercase dark:border-slate-800 dark:bg-slate-900/50">
-                  <th className="py-4 px-6">Tên môn học</th>
-                  <th className="py-4 px-4">Trường liên kết</th>
-                  <th className="py-4 px-4">Slug</th>
-                  <th className="py-4 px-4 font-semibold">Mô tả</th>
-                  <th className="py-4 px-4 text-center">Số tài liệu</th>
-                  <th className="py-4 px-6 text-right">Tác vụ</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
-                {subjects.map((subject) => (
-                  <tr key={subject.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/20">
-                    <td className="py-4 px-6 font-bold text-slate-800 dark:text-slate-200">
-                      {subject.name}
-                    </td>
-                    <td className="py-4 px-4 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                      {subject.school.name}
-                    </td>
-                    <td className="py-4 px-4 text-xs font-semibold text-slate-450 dark:text-slate-400">{subject.slug}</td>
-                    <td className="py-4 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 max-w-[200px] truncate" title={subject.description ?? ""}>
-                      {subject.description || <span className="italic text-slate-300">Không có mô tả</span>}
-                    </td>
-                    <td className="py-4 px-4 text-center font-bold text-slate-700 dark:text-slate-350">{subject._count.documents}</td>
-                    <td className="py-4 px-6 text-right space-x-1">
-                      <button
-                        onClick={() => openEditModal(subject)}
-                        className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-855 transition-colors"
-                      >
-                        Sửa
-                      </button>
-                      <button
-                        onClick={() => handleDelete(subject.id)}
-                        className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-700 transition-colors"
-                      >
-                        Xóa
-                      </button>
-                    </td>
+          <>
+            {/* Desktop view */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="min-w-[900px] w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-400 text-xs font-bold uppercase dark:border-slate-800 dark:bg-slate-900/50">
+                    <th className="py-4 px-6">Tên môn học</th>
+                    <th className="py-4 px-4">Trường liên kết</th>
+                    <th className="py-4 px-4">Slug</th>
+                    <th className="py-4 px-4 font-semibold">Mô tả</th>
+                    <th className="py-4 px-4 text-center">Số tài liệu</th>
+                    <th className="py-4 px-6 text-right">Tác vụ</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
+                  {subjects.map((subject) => (
+                    <tr key={subject.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/20">
+                      <td className="py-4 px-6 font-bold text-slate-800 dark:text-slate-200">
+                        {subject.name}
+                      </td>
+                      <td className="py-4 px-4 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                        {subject.school.name}
+                      </td>
+                      <td className="py-4 px-4 text-xs font-semibold text-slate-450 dark:text-slate-400">{subject.slug}</td>
+                      <td className="py-4 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 max-w-[200px] truncate" title={subject.description ?? ""}>
+                        {subject.description || <span className="italic text-slate-300">Không có mô tả</span>}
+                      </td>
+                      <td className="py-4 px-4 text-center font-bold text-slate-700 dark:text-slate-350">{subject._count.documents}</td>
+                      <td className="py-4 px-6 text-right space-x-1">
+                        <button
+                          onClick={() => openEditModal(subject)}
+                          className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-855 transition-colors"
+                        >
+                          Sửa
+                        </button>
+                        <button
+                          onClick={() => handleDelete(subject.id)}
+                          className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-700 transition-colors"
+                        >
+                          Xóa
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile view */}
+            <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800/60">
+              {subjects.map((subject) => (
+                <div key={subject.id} className="p-4 space-y-3">
+                  <div className="space-y-1.5">
+                    <p className="font-bold text-slate-800 dark:text-slate-200 text-sm break-words">{subject.name}</p>
+                    <div className="flex flex-wrap gap-1.5 items-center">
+                      <span className="inline-block rounded bg-emerald-50 dark:bg-emerald-950/30 px-2.5 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                        {subject.school.name}
+                      </span>
+                      <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">
+                        slug: {subject.slug}
+                      </span>
+                    </div>
+                  </div>
+
+                  {subject.description ? (
+                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">{subject.description}</p>
+                  ) : (
+                    <p className="text-xs italic text-slate-300 dark:text-slate-650">Không có mô tả</p>
+                  )}
+
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    <span className="font-bold text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Số tài liệu</span>
+                    <p className="font-bold mt-0.5 text-slate-700 dark:text-slate-300">{subject._count.documents}</p>
+                  </div>
+
+                  <div className="flex justify-end gap-1.5 pt-2">
+                    <button
+                      onClick={() => openEditModal(subject)}
+                      className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-855 transition-colors"
+                    >
+                      Sửa
+                    </button>
+                    <button
+                      onClick={() => handleDelete(subject.id)}
+                      className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-700 transition-colors"
+                    >
+                      Xóa
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
         {meta && meta.totalPages > 1 && (
