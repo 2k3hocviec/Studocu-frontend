@@ -166,68 +166,129 @@ export default function AdminUsersPage() {
             <span className="text-sm font-semibold text-slate-400">Không tìm thấy thành viên phù hợp</span>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-[900px] w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-400 text-xs font-bold uppercase dark:border-slate-800 dark:bg-slate-900/50">
-                  <th className="py-4 px-6">Thành viên</th>
-                  <th className="py-4 px-4">Quyền hạn</th>
-                  <th className="py-4 px-4">Số dư Credit</th>
-                  <th className="py-4 px-4">Trạng thái</th>
-                  <th className="py-4 px-4">Ngày đăng ký</th>
-                  <th className="py-4 px-6 text-right">Tác vụ</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
-                {users.map((user) => (
-                  <tr key={user.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/20">
-                    <td className="py-4 px-6 flex items-center space-x-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500 font-bold dark:bg-slate-800 dark:text-slate-400">
+          <>
+            {/* Desktop view */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="min-w-[900px] w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-400 text-xs font-bold uppercase dark:border-slate-800 dark:bg-slate-900/50">
+                    <th className="py-4 px-6">Thành viên</th>
+                    <th className="py-4 px-4">Quyền hạn</th>
+                    <th className="py-4 px-4">Số dư Credit</th>
+                    <th className="py-4 px-4">Trạng thái</th>
+                    <th className="py-4 px-4">Ngày đăng ký</th>
+                    <th className="py-4 px-6 text-right">Tác vụ</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
+                  {users.map((user) => (
+                    <tr key={user.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/20">
+                      <td className="py-4 px-6 flex items-center space-x-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500 font-bold dark:bg-slate-800 dark:text-slate-400">
+                          {user.avatarUrl ? (
+                            <img src={user.avatarUrl} alt="" className="h-full w-full rounded-full object-cover" />
+                          ) : (
+                            user.fullName.substring(0, 1).toUpperCase()
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-slate-850 dark:text-slate-200">{user.fullName}</p>
+                          <p className="text-xs text-slate-400 mt-0.5">{user.email}</p>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">{getRoleBadge(user.role)}</td>
+                      <td className="py-4 px-4 font-bold text-slate-700 dark:text-slate-300">
+                        {user.creditBalance.toLocaleString("vi-VN")}
+                      </td>
+                      <td className="py-4 px-4">{getStatusBadge(user.status)}</td>
+                      <td className="py-4 px-4 text-xs font-semibold text-slate-450 dark:text-slate-400">
+                        {new Date(user.createdAt).toLocaleDateString("vi-VN")}
+                      </td>
+                      <td className="py-4 px-6 text-right">
+                        {user.role !== "ADMIN" ? (
+                          user.status === "BANNED" ? (
+                            <button
+                              onClick={() => handleUpdateStatus(user.id, "ACTIVE")}
+                              className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-bold text-emerald-600 hover:bg-emerald-50 dark:border-emerald-950 dark:hover:bg-emerald-950/20 transition-colors"
+                            >
+                              Mở khóa
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleUpdateStatus(user.id, "BANNED")}
+                              className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-700 transition-colors"
+                            >
+                              Khóa tài khoản
+                            </button>
+                          )
+                        ) : (
+                          <span className="text-xs font-semibold text-slate-400 italic">N/A</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile view */}
+            <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800/60">
+              {users.map((user) => (
+                <div key={user.id} className="p-4 space-y-3">
+                  <div className="flex items-start gap-3 justify-between">
+                    <div className="flex items-center space-x-3 min-w-0">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 font-bold dark:bg-slate-800 dark:text-slate-400">
                         {user.avatarUrl ? (
                           <img src={user.avatarUrl} alt="" className="h-full w-full rounded-full object-cover" />
                         ) : (
                           user.fullName.substring(0, 1).toUpperCase()
                         )}
                       </div>
-                      <div>
-                        <p className="font-semibold text-slate-850 dark:text-slate-200">{user.fullName}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">{user.email}</p>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-slate-850 dark:text-slate-200 truncate">{user.fullName}</p>
+                        <p className="text-xs text-slate-400 truncate">{user.email}</p>
                       </div>
-                    </td>
-                    <td className="py-4 px-4">{getRoleBadge(user.role)}</td>
-                    <td className="py-4 px-4 font-bold text-slate-700 dark:text-slate-300">
-                      {user.creditBalance.toLocaleString("vi-VN")}
-                    </td>
-                    <td className="py-4 px-4">{getStatusBadge(user.status)}</td>
-                    <td className="py-4 px-4 text-xs font-semibold text-slate-450 dark:text-slate-400">
-                      {new Date(user.createdAt).toLocaleDateString("vi-VN")}
-                    </td>
-                    <td className="py-4 px-6 text-right">
-                      {user.role !== "ADMIN" ? (
-                        user.status === "BANNED" ? (
-                          <button
-                            onClick={() => handleUpdateStatus(user.id, "ACTIVE")}
-                            className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-bold text-emerald-600 hover:bg-emerald-50 dark:border-emerald-950 dark:hover:bg-emerald-950/20 transition-colors"
-                          >
-                            Mở khóa
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => handleUpdateStatus(user.id, "BANNED")}
-                            className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-700 transition-colors"
-                          >
-                            Khóa tài khoản
-                          </button>
-                        )
+                    </div>
+                    <div className="flex flex-col items-end gap-1.5 shrink-0">
+                      {getRoleBadge(user.role)}
+                      {getStatusBadge(user.status)}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-xs text-slate-500 dark:text-slate-400">
+                    <div>
+                      <p className="font-bold text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Số dư Credit</p>
+                      <p className="font-bold mt-0.5 text-slate-700 dark:text-slate-300">{user.creditBalance.toLocaleString("vi-VN")}</p>
+                    </div>
+                    <div>
+                      <p className="font-bold text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Ngày đăng ký</p>
+                      <p className="font-semibold mt-0.5 text-slate-700 dark:text-slate-300">{new Date(user.createdAt).toLocaleDateString("vi-VN")}</p>
+                    </div>
+                  </div>
+
+                  {user.role !== "ADMIN" && (
+                    <div className="flex justify-end pt-2">
+                      {user.status === "BANNED" ? (
+                        <button
+                          onClick={() => handleUpdateStatus(user.id, "ACTIVE")}
+                          className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-bold text-emerald-600 hover:bg-emerald-50 dark:border-emerald-950 dark:hover:bg-emerald-950/20 transition-colors"
+                        >
+                          Mở khóa
+                        </button>
                       ) : (
-                        <span className="text-xs font-semibold text-slate-400 italic">N/A</span>
+                        <button
+                          onClick={() => handleUpdateStatus(user.id, "BANNED")}
+                          className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-700 transition-colors"
+                        >
+                          Khóa tài khoản
+                        </button>
                       )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
         {meta && meta.totalPages > 1 && (
