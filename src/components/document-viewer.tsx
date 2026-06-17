@@ -21,10 +21,12 @@ interface DocumentViewerProps {
 
 /** Chọn trình hiển thị phù hợp cho các file tài liệu PDF, DOCX và PPTX. */
 export function DocumentViewer({ fileUrl, fileType, totalPages, isPreview = false, authToken, downloadFileName, onDownload, fallback, apiBase, documentId, previews }: DocumentViewerProps) {
-  const fullViewUrl =
-    !isPreview && fileType === "PPTX" && apiBase && documentId !== undefined
-      ? `${apiBase}/documents/${documentId}/file/pdf`
-      : fileUrl;
+  // All file types are served through /:id/file with a correct Content-Type
+  // header. Frontend used to call /file/pdf for PPTX, but that route does not
+  // exist on the backend and triggered a 404 + CORS error.
+  const fullViewUrl = !isPreview && apiBase && documentId !== undefined
+    ? `${apiBase}/documents/${documentId}/file`
+    : fileUrl;
   const { objectUrl, isLoading, error } = useProtectedFile(fullViewUrl, authToken, !isPreview);
   const viewerUrl = isPreview ? fileUrl : objectUrl;
 
