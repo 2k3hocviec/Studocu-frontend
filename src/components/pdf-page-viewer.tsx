@@ -93,7 +93,7 @@ export function PDFPageViewer({ fileUrl, totalPages = 0, downloadFileName, onDow
                 </p>
                 <a
                     href={fileUrl}
-                    download={downloadFileName}
+                    download={downloadFileName ? (downloadFileName.replace(/\.[^.]+$/, "") + ".pdf") : undefined}
                     onClick={() => onDownload?.()}
                     className="flex h-10 items-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-medium text-white hover:bg-emerald-700"
                 >

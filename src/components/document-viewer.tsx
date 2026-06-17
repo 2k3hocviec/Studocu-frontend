@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
-import { DOCXViewer } from "@/components/docx-viewer";
 import { PDFPageViewer } from "@/components/pdf-page-viewer";
 
 interface DocumentViewerProps {
@@ -19,26 +18,35 @@ interface DocumentViewerProps {
   previews?: Array<{ pageNumber: number; imageUrl: string }>;
 }
 
-/** Chọn trình hiển thị phù hợp cho các file tài liệu PDF, DOCX và PPTX. */
+/** Chọn trình hiển thị phù hợp: mọi loại file đều dùng PDFPageViewer vì
+ *  backend đã convert DOCX/PPTX sang PDF khi xem, chỉ preview dùng ảnh. */
 export function DocumentViewer({ fileUrl, fileType, totalPages, isPreview = false, authToken, downloadFileName, onDownload, fallback, apiBase, documentId, previews }: DocumentViewerProps) {
-  // All file types are served through /:id/file with a correct Content-Type
-  // header. Frontend used to call /file/pdf for PPTX, but that route does not
-  // exist on the backend and triggered a 404 + CORS error.
+  // Server trả PDF cho mọi loại file khi xem full. Preview mode dùng ảnh preview.
   const fullViewUrl = !isPreview && apiBase && documentId !== undefined
     ? `${apiBase}/documents/${documentId}/file`
     : fileUrl;
   const { objectUrl, isLoading, error } = useProtectedFile(fullViewUrl, authToken, !isPreview);
   const viewerUrl = isPreview ? fileUrl : objectUrl;
 
-  if (!isPreview && isLoading) {
+  // Xem preview: hiện ảnh preview (cho PPTX) hoặc fallback component
+  if (isPreview) {
+    if (fileType === "PPTX" && previews && previews.length > 0) {
+      return <PPTXPreviewGallery previews={previews} totalPages={totalPages} />;
+    }
+    if (fallback) return <>{fallback}</>;
+    return <ViewerMessage tone="neutral" title="Chưa có file để hiển thị" description="Vui lòng thử lại sau." />;
+  }
+
+  // Full view: loading / error / viewer
+  if (isLoading) {
     return <ViewerLoadingState />;
   }
 
-  if (!isPreview && error && fallback) {
+  if (error && fallback) {
     return <>{fallback}</>;
   }
 
-  if (!isPreview && error) {
+  if (error) {
     return <ViewerMessage tone="error" title="Không thể mở tài liệu" description={error} />;
   }
 
@@ -46,25 +54,15 @@ export function DocumentViewer({ fileUrl, fileType, totalPages, isPreview = fals
     return <ViewerMessage tone="neutral" title="Chưa có file để hiển thị" description="Vui lòng thử lại sau." />;
   }
 
-  if (fileType === "DOCX") {
-    return <DOCXViewer fileUrl={viewerUrl} isPreview={isPreview} onDownload={onDownload} />;
-  }
-
-  if (fileType === "PPTX") {
-    if (isPreview) {
-      return <PPTXPreviewGallery previews={previews} totalPages={totalPages} />;
-    }
-    return (
-      <PDFPageViewer
-        fileUrl={viewerUrl ?? fullViewUrl}
-        totalPages={totalPages}
-        downloadFileName={downloadFileName?.replace(/\.pptx$/i, ".pdf")}
-        onDownload={onDownload}
-      />
-    );
-  }
-
-  return <PDFPageViewer fileUrl={viewerUrl} totalPages={totalPages} downloadFileName={downloadFileName} onDownload={onDownload} />;
+  // Mọi loại file (PDF, DOCX, PPTX) đều được serve qua PDFPageViewer
+  return (
+    <PDFPageViewer
+      fileUrl={viewerUrl}
+      totalPages={totalPages}
+      downloadFileName={downloadFileName}
+      onDownload={onDownload}
+    />
+  );
 }
 
 /** Tải file được bảo vệ thành object URL để trình duyệt hiển thị được nội dung cần xác thực. */

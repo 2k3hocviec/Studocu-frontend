@@ -168,10 +168,11 @@ export default function DocumentPage() {
       }
 
       const blob = await response.blob();
+      const extension = document.documentFile?.fileType?.toLowerCase() ?? "bin";
       const objectUrl = URL.createObjectURL(blob);
       const link = window.document.createElement("a");
       link.href = objectUrl;
-      link.download = document.title;
+      link.download = `${document.title}.${extension}`;
       link.click();
       URL.revokeObjectURL(objectUrl);
     } catch (err) {
