@@ -27,11 +27,14 @@ interface PDFPageViewerProps {
     fileUrl: string;
     totalPages?: number;
     downloadFileName?: string;
+    downloadFileUrl?: string;
+    originalFileType?: "PDF" | "DOCX" | "PPTX" | string;
+    authToken?: string | null;
     onDownload?: () => void;
 }
 
 /** Trình xem PDF render từng trang bằng pdf.js canvas. */
-export function PDFPageViewer({ fileUrl, totalPages = 0, downloadFileName, onDownload }: PDFPageViewerProps) {
+export function PDFPageViewer({ fileUrl, totalPages = 0, downloadFileName, downloadFileUrl, originalFileType, authToken, onDownload }: PDFPageViewerProps) {
     const [pdfDocument, setPdfDocument] = useState<PdfDocument | null>(null);
     const [pageCount, setPageCount] = useState(totalPages);
     const [isLoading, setIsLoading] = useState(true);
@@ -77,6 +80,36 @@ export function PDFPageViewer({ fileUrl, totalPages = 0, downloadFileName, onDow
         };
     }, [fileUrl]);
 
+    /** Tải file gốc (PDF/DOCX/PPTX) với Authorization header rồi mới lưu xuống máy. */
+    async function handleOriginalDownload() {
+        const targetUrl = downloadFileUrl ?? fileUrl;
+        const baseName = downloadFileName?.replace(/\.[^.]+$/, "") ?? "document";
+        const extension = originalFileType ? `.${originalFileType.toLowerCase()}` : ".pdf";
+        const filename = `${baseName}${extension}`;
+
+        onDownload?.();
+
+        try {
+            const response = await fetch(targetUrl, {
+                headers: authToken ? { Authorization: `Bearer ${authToken}` } : undefined,
+            });
+            if (!response.ok) {
+                alert(`Lỗi tải tài liệu (${response.status}). Vui lòng thử lại.`);
+                return;
+            }
+            const blob = await response.blob();
+            const objectUrl = URL.createObjectURL(blob);
+            const link = window.document.createElement("a");
+            link.href = objectUrl;
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(objectUrl);
+        } catch (err) {
+            console.error("Download error:", err);
+            alert("Lỗi tải tài liệu. Vui lòng thử lại.");
+        }
+    }
+
     if (isLoading) {
         return <ViewerShell title="Đang tách trang PDF..." description="Hệ thống đang render tài liệu thành từng trang." />;
     }
@@ -91,14 +124,13 @@ export function PDFPageViewer({ fileUrl, totalPages = 0, downloadFileName, onDow
                 <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
                     {pageCount} trang
                 </p>
-                <a
-                    href={fileUrl}
-                    download={downloadFileName ? (downloadFileName.replace(/\.[^.]+$/, "") + ".pdf") : undefined}
-                    onClick={() => onDownload?.()}
+                <button
+                    type="button"
+                    onClick={() => void handleOriginalDownload()}
                     className="flex h-10 items-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-medium text-white hover:bg-emerald-700"
                 >
                     Tải xuống
-                </a>
+                </button>
             </div>
 
             <div className="space-y-5">

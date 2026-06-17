@@ -60,6 +60,9 @@ export function DocumentViewer({ fileUrl, fileType, totalPages, isPreview = fals
       fileUrl={viewerUrl}
       totalPages={totalPages}
       downloadFileName={downloadFileName}
+      downloadFileUrl={apiBase && documentId !== undefined ? `${apiBase}/documents/${documentId}/file?download=1` : undefined}
+      originalFileType={fileType}
+      authToken={authToken}
       onDownload={onDownload}
     />
   );
