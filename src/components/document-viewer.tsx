@@ -28,12 +28,12 @@ export function DocumentViewer({ fileUrl, fileType, totalPages, isPreview = fals
     ? `${apiBase}/documents/${documentId}/file`
     : fileUrl;
   // directViewUrl là Cloudinary signed URL — dùng trực tiếp, không cần fetch qua backend
-  const viewerUrl = isPreview ? fileUrl : (directViewUrl ?? objectUrl ?? fullViewUrl);
   const { objectUrl, isLoading, error } = useProtectedFile(
-    directViewUrl ? null : fullViewUrl,
+    directViewUrl ? fullViewUrl : fullViewUrl,
     authToken,
     !isPreview && !directViewUrl,
   );
+  const viewerUrl = isPreview ? fileUrl : (directViewUrl ?? objectUrl ?? fullViewUrl);
 
   // Xem preview: hiện ảnh preview (cho PPTX) hoặc fallback component
   if (isPreview) {
