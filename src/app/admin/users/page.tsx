@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/utils/api";
+import { AvatarWithFallback } from "@/components/avatar-with-fallback";
 
 type UserItem = {
   id: number;
@@ -184,13 +185,13 @@ export default function AdminUsersPage() {
                   {users.map((user) => (
                     <tr key={user.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/20">
                       <td className="py-4 px-6 flex items-center space-x-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500 font-bold dark:bg-slate-800 dark:text-slate-400">
-                          {user.avatarUrl ? (
-                            <img src={user.avatarUrl} alt="" className="h-full w-full rounded-full object-cover" />
-                          ) : (
-                            user.fullName.substring(0, 1).toUpperCase()
-                          )}
-                        </div>
+                        <AvatarWithFallback
+                          src={user.avatarUrl}
+                          fullName={user.fullName}
+                          alt=""
+                          className="h-9 w-9 rounded-full"
+                          textSizeClass="text-sm"
+                        />
                         <div>
                           <p className="font-semibold text-slate-850 dark:text-slate-200">{user.fullName}</p>
                           <p className="text-xs text-slate-400 mt-0.5">{user.email}</p>
@@ -237,13 +238,13 @@ export default function AdminUsersPage() {
                 <div key={user.id} className="p-4 space-y-3">
                   <div className="flex items-start gap-3 justify-between">
                     <div className="flex items-center space-x-3 min-w-0">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 font-bold dark:bg-slate-800 dark:text-slate-400">
-                        {user.avatarUrl ? (
-                          <img src={user.avatarUrl} alt="" className="h-full w-full rounded-full object-cover" />
-                        ) : (
-                          user.fullName.substring(0, 1).toUpperCase()
-                        )}
-                      </div>
+                      <AvatarWithFallback
+                        src={user.avatarUrl}
+                        fullName={user.fullName}
+                        alt=""
+                        className="h-9 w-9 shrink-0 rounded-full"
+                        textSizeClass="text-sm"
+                      />
                       <div className="min-w-0">
                         <p className="font-semibold text-slate-850 dark:text-slate-200 truncate">{user.fullName}</p>
                         <p className="text-xs text-slate-400 truncate">{user.email}</p>

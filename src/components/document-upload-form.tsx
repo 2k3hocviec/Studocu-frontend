@@ -18,6 +18,16 @@ function sameName(left: string, right: string) {
     return left.trim().toLocaleLowerCase("vi-VN") === right.trim().toLocaleLowerCase("vi-VN");
 }
 
+/** Map extension (đuôi file, chữ thường) → FileType tương ứng. Trả về null nếu extension không hợp lệ. */
+function detectFileTypeFromExtension(filename: string): "PDF" | "DOCX" | "PPTX" | null {
+    const match = /\.([a-z0-9]+)$/i.exec(filename || "");
+    const ext = match ? match[1].toLowerCase() : "";
+    if (ext === "pdf") return "PDF";
+    if (ext === "docx") return "DOCX";
+    if (ext === "pptx") return "PPTX";
+    return null;
+}
+
 /** Form upload tài liệu, metadata và file đính kèm. */
 export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormProps) {
     const [file, setFile] = useState<File | null>(null);
@@ -116,16 +126,17 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
 
     const validateAndSetFile = (selectedFile: File) => {
         const maxSize = 20 * 1024 * 1024; // 20MB
-        const allowedTypes = ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/vnd.openxmlformats-officedocument.presentationml.presentation"];
-
         if (selectedFile.size > maxSize) {
             setErrorMsg("File quá lớn. Tối đa 20MB.");
             setStatus("error");
             return;
         }
 
-        if (!allowedTypes.includes(selectedFile.type)) {
-            setErrorMsg("Chỉ hỗ trợ PDF, Word, PowerPoint.");
+        // Dựa vào extension (đuôi tên file) thay vì MIME type — MIME có thể bị spoof
+        // nhưng đổi đuôi file thì user phải tự làm và hệ quả là họ sẽ gặp lỗi ở bước magic bytes.
+        const fileType = detectFileTypeFromExtension(selectedFile.name);
+        if (!fileType) {
+            setErrorMsg("Chỉ hỗ trợ PDF, Word (.docx), PowerPoint (.pptx).");
             setStatus("error");
             return;
         }
@@ -182,7 +193,7 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
             }
             uploadFormData.append("documentType", formData.documentType);
 
-            const fileType = file.type === "application/pdf" ? "PDF" : file.type.includes("word") ? "DOCX" : "PPTX";
+            const fileType = detectFileTypeFromExtension(file.name) ?? "PDF";
             uploadFormData.append("fileType", fileType);
 
             const token = await getValidAccessToken();
@@ -265,7 +276,7 @@ export function DocumentUploadForm({ onSuccess, onError }: DocumentUploadFormPro
                 className={`relative cursor-pointer rounded-2xl border-2 border-dashed p-12 text-center transition ${isDragging ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20" : "border-slate-300 bg-slate-50 hover:border-emerald-400 dark:border-white/10 dark:bg-white/5 dark:hover:border-emerald-600"
                     }`}
             >
-                <input ref={fileInputRef} type="file" onChange={handleFileChange} className="hidden" accept=".pdf,.doc,.docx,.ppt,.pptx" />
+                <input ref={fileInputRef} type="file" onChange={handleFileChange} className="hidden" accept=".pdf,.docx,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation" />
 
                 <div className="space-y-2">
                     <div className="text-3xl">📄</div>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PremiumBadge } from "@/components/premium-badge";
 import { SiteHeader } from "@/components/site-header";
+import { AvatarWithFallback } from "@/components/avatar-with-fallback";
 
 type UserProfile = {
   id: number;
@@ -424,21 +425,13 @@ export function ProfilePanel() {
       <SiteHeader authenticated />
       <main className="profile-pattern mx-auto grid min-h-[calc(100vh-4rem)] max-w-5xl content-start gap-6 px-6 py-11 md:grid-cols-[255px_1fr]">
         <aside className="h-fit rounded-2xl border border-slate-200 bg-white px-7 pb-8 pt-10 text-center shadow-[0_7px_18px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-white/5">
-          {avatarPreview ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={avatarPreview}
-              alt={`Ảnh đại diện của ${profile?.fullName ?? "người dùng"}`}
-              className="mx-auto h-20 w-20 rounded-full object-cover"
-            />
-          ) : (
-            <div className="mx-auto grid h-20 w-20 place-content-center rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-              <svg viewBox="0 0 24 24" className="h-9 w-9" fill="none" stroke="currentColor" strokeWidth="1.55">
-                <circle cx="12" cy="8" r="3.5" />
-                <path d="M5.5 20c.3-4 3-6.2 6.5-6.2s6.2 2.2 6.5 6.2" />
-              </svg>
-            </div>
-          )}
+          <AvatarWithFallback
+            src={avatarPreview || profile?.avatarUrl}
+            fullName={profile?.fullName ?? ""}
+            alt={`Ảnh đại diện của ${profile?.fullName ?? "người dùng"}`}
+            className="mx-auto h-20 w-20 rounded-full"
+            textSizeClass="text-2xl"
+          />
           {subscription ? (
             <div className="mt-4">
               <PremiumBadge />

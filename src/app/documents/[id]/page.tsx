@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { DocumentViewer } from "@/components/document-viewer";
 import { ReportDialog } from "@/components/report-dialog";
+import { AvatarWithFallback } from "@/components/avatar-with-fallback";
 import { submitReport } from "@/utils/api";
 
 interface Document {
@@ -250,10 +251,12 @@ export default function DocumentPage() {
 
             <div className="flex flex-wrap items-center gap-6 border-b border-slate-200 pb-6 text-sm text-slate-600 dark:border-white/10 dark:text-slate-400">
               <div className="flex items-center gap-2">
-                <img
-                  src={document.uploader.avatarUrl || "/images/avatar-default.png"}
+                <AvatarWithFallback
+                  src={document.uploader.avatarUrl}
+                  fullName={document.uploader.fullName}
                   alt={document.uploader.fullName}
-                  className="h-8 w-8 rounded-full object-cover"
+                  className="h-8 w-8 rounded-full"
+                  textSizeClass="text-sm"
                 />
                 <span>{document.uploader.fullName}</span>
               </div>
