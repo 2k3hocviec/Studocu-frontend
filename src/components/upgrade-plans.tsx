@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SiteHeader } from "@/components/site-header";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
@@ -135,6 +135,7 @@ export function UpgradePlans({ authenticated = true }: UpgradePlansProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [processingId, setProcessingId] = useState<number | null>(null);
   const [error, setError] = useState("");
+  const isLeavingForPaymentRef = useRef(false);
 
   const sortedPlans = useMemo(() => [...plans].sort((a, b) => a.durationDays - b.durationDays || a.price - b.price), [plans]);
 
@@ -174,6 +175,31 @@ export function UpgradePlans({ authenticated = true }: UpgradePlansProps) {
       .finally(() => setIsLoading(false));
   }, [authenticated, loadMembership, router]);
 
+  useEffect(() => {
+    function resetProcessingState() {
+      if (!isLeavingForPaymentRef.current) {
+        return;
+      }
+
+      isLeavingForPaymentRef.current = false;
+      setProcessingId(null);
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === "visible") {
+        resetProcessingState();
+      }
+    }
+
+    window.addEventListener("pageshow", resetProcessingState);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("pageshow", resetProcessingState);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
   async function enroll(plan: Plan) {
     const accessToken = localStorage.getItem("accessToken");
     if (!accessToken) {
@@ -192,8 +218,10 @@ export function UpgradePlans({ authenticated = true }: UpgradePlansProps) {
       if (!payment.paymentUrl) {
         throw new Error("Không nhận được đường dẫn thanh toán VNPAY.");
       }
+      isLeavingForPaymentRef.current = true;
       window.location.assign(payment.paymentUrl);
     } catch (requestError) {
+      isLeavingForPaymentRef.current = false;
       setError(requestError instanceof Error ? requestError.message : "Không thể tạo thanh toán VNPAY.");
       setProcessingId(null);
     }
