@@ -199,7 +199,7 @@ function PDFCanvasPage({ pdfDocument, pageNumber }: { pdfDocument: PdfDocument; 
                 const page = await pdfDocument.getPage(pageNumber);
                 if (cancelled) return;
 
-                const viewport = page.getViewport({ scale: 1.2 });
+                const viewport = page.getViewport({ scale: 1.4 });
                 const context = canvas.getContext("2d");
                 if (!context) throw new Error("Canvas is not available");
 
