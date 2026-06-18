@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 
 import { ThemeToggle } from "@/components/theme-toggle";
-import { getValidAccessToken } from "@/utils/api";
+import { getValidAccessToken, logoutSession } from "@/utils/api";
 
 type TokenPayload = {
   email?: string;
@@ -57,9 +57,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [router]);
 
   /** Xóa phiên đăng nhập và đưa user về trang login. */
-  const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
+  const handleLogout = async () => {
+    await logoutSession();
     router.push("/login");
   };
 

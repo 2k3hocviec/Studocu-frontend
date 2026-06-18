@@ -222,16 +222,11 @@ export function SiteHeader({ authenticated }: SiteHeaderProps) {
   }, [hasToken]);
 
   async function handleLogout() {
-    const refreshToken = localStorage.getItem("refreshToken");
-
     try {
-      if (refreshToken) {
-        await fetch(`${apiUrl}/auth/logout`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ refreshToken }),
-        });
-      }
+      await fetch(`${apiUrl}/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
     } catch {
       // Vẫn xóa phiên cục bộ để đăng xuất người dùng khi API không khả dụng.
     } finally {

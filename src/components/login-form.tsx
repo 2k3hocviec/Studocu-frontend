@@ -10,7 +10,6 @@ type LoginResponse = {
   message?: string;
   data?: {
     accessToken: string;
-    refreshToken: string;
   };
 };
 
@@ -50,6 +49,7 @@ export function LoginForm() {
     try {
       const response = await fetch(`${apiUrl}/auth/login`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: String(formData.get("email") ?? "").trim().toLowerCase(),
@@ -68,7 +68,7 @@ export function LoginForm() {
       }
 
       localStorage.setItem("accessToken", result.data.accessToken);
-      localStorage.setItem("refreshToken", result.data.refreshToken);
+      localStorage.removeItem("refreshToken");
       router.push(role === "USER" ? "/user" : "/admin");
     } catch (requestError) {
       setError(

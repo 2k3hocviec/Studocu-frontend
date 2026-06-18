@@ -30,20 +30,17 @@ function onRefreshed(token: string | null) {
 /** Đổi refresh token lấy phiên mới và xóa xác thực cục bộ nếu thất bại. */
 async function performRefresh(): Promise<string | null> {
   if (typeof window === "undefined") return null;
-  const refreshToken = localStorage.getItem("refreshToken");
-  if (!refreshToken) return null;
 
   try {
     const response = await fetch(`${apiUrl}/auth/refresh-token`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken }),
+      credentials: "include",
     });
 
     const result = await response.json();
     if (response.ok && result.success && result.data) {
       localStorage.setItem("accessToken", result.data.accessToken);
-      localStorage.setItem("refreshToken", result.data.refreshToken);
+      localStorage.removeItem("refreshToken");
       return result.data.accessToken;
     }
   } catch (err) {
@@ -91,22 +88,31 @@ export async function apiFetch(urlOrPath: string, options: RequestInit = {}): Pr
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const response = await fetch(url, { ...options, headers });
+  const response = await fetch(url, { ...options, headers, credentials: options.credentials ?? "include" });
 
   if (response.status === 401 && typeof window !== "undefined") {
-    const refreshToken = localStorage.getItem("refreshToken");
-    if (refreshToken) {
-      const newToken = await performRefresh();
-      if (newToken) {
-        headers.set("Authorization", `Bearer ${newToken}`);
-        return fetch(url, { ...options, headers });
-      } else {
-        window.location.href = "/login?status=session-expired";
-      }
+    const newToken = await performRefresh();
+    if (newToken) {
+      headers.set("Authorization", `Bearer ${newToken}`);
+      return fetch(url, { ...options, headers, credentials: options.credentials ?? "include" });
     }
+    window.location.href = "/login?status=session-expired";
   }
 
   return response;
+}
+
+/** Thu hồi refresh token HttpOnly cookie và xóa token cục bộ. */
+export async function logoutSession(): Promise<void> {
+  try {
+    await fetch(`${apiUrl}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+  } finally {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+  }
 }
 
 /** Gửi báo cáo tài liệu của người dùng và chuẩn hóa lỗi API thành exception. */
