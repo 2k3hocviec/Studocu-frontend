@@ -34,6 +34,7 @@ interface Document {
     fileUrl: string | null;
     fileType: "PDF" | "DOCX" | "PPTX";
     totalPages?: number;
+    viewableUrl?: string | null;
   };
   previews: Array<{ id: number; pageNumber: number; imageUrl: string; isBlurred: boolean }>;
   accessInfo: {
@@ -301,6 +302,7 @@ export default function DocumentPage() {
           {document.accessInfo.canViewFull && document.documentFile ? (
             <DocumentViewer
               fileUrl={`${apiUrl}/documents/${documentId}/file`}
+              directViewUrl={document.documentFile.viewableUrl}
               fileType={document.documentFile.fileType}
               totalPages={document.documentFile.totalPages}
               isPreview={false}

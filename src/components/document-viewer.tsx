@@ -16,17 +16,24 @@ interface DocumentViewerProps {
   apiBase?: string;
   documentId?: number | string;
   previews?: Array<{ pageNumber: number; imageUrl: string }>;
+  /** Signed Cloudinary URL — dùng trực tiếp không cần auth, bỏ qua proxy backend. */
+  directViewUrl?: string | null;
 }
 
 /** Chọn trình hiển thị phù hợp: mọi loại file đều dùng PDFPageViewer vì
  *  backend đã convert DOCX/PPTX sang PDF khi xem, chỉ preview dùng ảnh. */
-export function DocumentViewer({ fileUrl, fileType, totalPages, isPreview = false, authToken, downloadFileName, onDownload, fallback, apiBase, documentId, previews }: DocumentViewerProps) {
+export function DocumentViewer({ fileUrl, fileType, totalPages, isPreview = false, authToken, downloadFileName, onDownload, fallback, apiBase, documentId, previews, directViewUrl }: DocumentViewerProps) {
   // Server trả PDF cho mọi loại file khi xem full. Preview mode dùng ảnh preview.
   const fullViewUrl = !isPreview && apiBase && documentId !== undefined
     ? `${apiBase}/documents/${documentId}/file`
     : fileUrl;
-  const { objectUrl, isLoading, error } = useProtectedFile(fullViewUrl, authToken, !isPreview);
-  const viewerUrl = isPreview ? fileUrl : objectUrl;
+  // directViewUrl là Cloudinary signed URL — dùng trực tiếp, không cần fetch qua backend
+  const viewerUrl = isPreview ? fileUrl : (directViewUrl ?? objectUrl ?? fullViewUrl);
+  const { objectUrl, isLoading, error } = useProtectedFile(
+    directViewUrl ? null : fullViewUrl,
+    authToken,
+    !isPreview && !directViewUrl,
+  );
 
   // Xem preview: hiện ảnh preview (cho PPTX) hoặc fallback component
   if (isPreview) {
